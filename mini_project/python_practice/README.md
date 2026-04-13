@@ -10,7 +10,7 @@
 * Key Concepts: Class, Object, List, Loop
 * Status: ✅ Completed
 
-### 2. [AddressBook(Class inherited) (상속을 활용한 주소록 관리 프로그램) ](./AddressBook-Inherited))
+### 2. [AddressBook(Class inherited) (상속을 활용한 주소록 관리 프로그램) ](./AddressBook_Inherited))
 * Description: 위의 프로그램에 클래스의 상속 기능을 활용하여 기능을 추가한 프로그램입니다.
 * Key Concepts: Class, Inheritance, Dataclass, Module Seperation
 * Status: ✅ Completed

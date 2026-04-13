@@ -1,4 +1,4 @@
-## 📌 챕터별 설명
+## 챕터별 설명
 
 ### ch01. 단일 퍼셉트론과 논리 게이트 구현 (`perceptron.py`)
 
@@ -29,7 +29,7 @@
 
 ---
 
-## ▶️ 실행 방법
+## 실행 방법
 
 ```bash
 python ch01_perceptron/perceptron.py

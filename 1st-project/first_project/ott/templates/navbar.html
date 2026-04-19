@@ -1,0 +1,28 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark-deep border-bottom border-secondary sticky-top">
+    <div class="container-xl">
+        <a class="navbar-brand font-weight-bold" href="{{url_for('main.index')}}">
+            OTT Analytics
+        </a>
+
+        <button class="navbar-toggler ml-auto" type="button" data-toggle="collapse" data-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link {% if active_page == 'main' %}active{% endif %}"
+                       href="{{url_for('main.index')}}">홈</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if active_page == 'lookup' %} active {% endif %}"
+                       href="{{url_for('churn.lookup')}}">유저 조회</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if active_page == 'churn' %}active{% endif %}"
+                       href="{{url_for('churn.index')}}">이탈 위험 그룹 분석</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>

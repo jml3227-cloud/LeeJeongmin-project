@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+
+{% block title %}이탈 위험 그룹 분석 — OTT Analytics{% endblock %}
+
+{% block content %}
+
+<div class="mb-4">
+  <h4 class="font-weight-bold">이탈 위험 그룹 분석</h4>
+  <p class="text-muted">유저 정보를 입력하면 이용 빈도 그룹을 예측하고 <span class="break-mobile">마케팅 액션을 제안합니다</span></p>
+</div>
+
+<form id="predictForm" action="{{ url_for('churn.predict') }}" method="POST">
+  {{ form.hidden_tag() }}
+  {% include "form_errors.html" %}
+
+  <div class="row">
+
+    <!-- 기본 정보 -->
+    <div class="col-md-4 mb-3">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <p class="section-label">기본 정보</p>
+          <div class="mb-3">
+            <label class="form-label small font-weight-bold">{{ form.family_type.label }}</label>
+            {{ form.family_type(class="form-control") }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label small font-weight-bold">{{ form.monthly_fee_code.label }}</label>
+            {{ form.monthly_fee_code(class="form-control") }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label small font-weight-bold">{{ form.total_min.label }}</label>
+            {{ form.total_min(class="form-control", placeholder="예: 300", min="0") }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 시청 성향 -->
+    <div class="col-md-4 mb-3">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <p class="section-label">시청 성향</p>
+          <div class="mb-3">
+            <label class="form-label small font-weight-bold">{{ form.recommend_view.label }}</label>
+            {{ form.recommend_view(class="form-control") }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label small font-weight-bold">{{ form.search_view.label }}</label>
+            {{ form.search_view(class="form-control") }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label small font-weight-bold">{{ form.binge_watch.label }}</label>
+            {{ form.binge_watch(class="form-control") }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 구독 서비스 & 기기 -->
+    <div class="col-md-4 mb-3">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <p class="section-label">구독 서비스 & 이용 기기 (복수 선택)</p>
+          <div class="mb-3">
+            <label class="form-label small font-weight-bold">구독 중인 OTT 서비스<span class="text-muted font-weight-normal"></span></label>
+            <div class="row">
+              {% for val, label in form.ott_services.choices %}
+              <div class="col-6">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="ott_services" value="{{ val }}" id="ott_{{ val }}"
+                    {% if form.ott_services.data and val in form.ott_services.data %}checked{% endif %}>
+                  <label class="form-check-label small" for="ott_{{ val }}">{{ label }}</label>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small font-weight-bold">이용 기기 <span class="text-muted font-weight-normal"></span></label>
+            <div class="row">
+              {% for val, label in form.devices.choices %}
+              <div class="col-6">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="devices" value="{{ val }}" id="device_{{ val }}"
+                    {% if form.devices.data and val in form.devices.data %}checked{% endif %}>
+                  <label class="form-check-label small" for="device_{{ val }}">{{ label }}</label>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 콘텐츠 유형 -->
+  <div class="card shadow-sm mb-3">
+    <div class="card-body">
+      <p class="section-label">시청 콘텐츠 유형 (복수 선택)</p>
+      <div class="row">
+        {% for val, label in form.content_types.choices %}
+        <div class="col-md-2 col-6">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="content_types" value="{{ val }}" id="content_{{ val }}"
+              {% if form.content_types.data and val in form.content_types.data %}checked{% endif %}>
+            <label class="form-check-label small" for="content_{{ val }}">{{ label }}</label>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- 버튼 -->
+  <div class="d-flex justify-content-end mb-4">
+    <button type="reset" class="btn btn-outline-secondary mr-2">초기화</button>
+    <button type="submit" class="btn btn-primary">예측 실행</button>
+  </div>
+
+</form>
+
+<!-- 결과 섹션(처음엔 숨김) -->
+<div id="resultSection" style="display:none;">
+
+  <!-- 결과 카드 -->
+  <div class="card shadow-sm mb-4 scroll-reveal">
+    <div class="card-body">
+      <h6 class="font-weight-bold mb-3">예측 결과</h6>
+      <div class="row">
+
+        <div class="col-md-4 mb-3">
+          <div class="card h-100" id="card-high">
+            <div class="card-body text-center">
+              <div id="badge-high" style="display:none; margin-bottom: 0.5rem;">
+                <span class="badge badge-light">해당</span>
+              </div>
+              <span class="badge badge-primary mb-2">고빈도</span>
+              <h6 class="font-weight-bold mt-2">안정 구독자</h6>
+              <p class="text-muted small mb-0">매일~주 5회 이상 이용<br>이탈 위험 낮음</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+          <div class="card h-100" id="card-mid">
+            <div class="card-body text-center">
+              <div id="badge-mid" style="display:none; margin-bottom: 0.5rem;">
+                <span class="badge badge-light">해당</span>
+              </div>
+              <span class="badge badge-warning mb-2">중빈도</span>
+              <h6 class="font-weight-bold mt-2">관찰 필요 구독자</h6>
+              <p class="text-muted small mb-0">주 1~4회 이용<br>이탈 위험 관찰 대상</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+          <div class="card h-100" id="card-low">
+            <div class="card-body text-center">
+              <div id="badge-low" style="display:none; margin-bottom: 0.5rem;">
+                <span class="badge badge-light">해당</span>
+              </div>
+              <span class="badge badge-danger mb-2">저빈도</span>
+              <h6 class="font-weight-bold mt-2">이탈 위험군</h6>
+              <p class="text-muted small mb-0">월 1~3회 이하 이용<br>적극적 개입 필요</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 인사이트 -->
+      <div class="alert alert-info mb-0">
+        <span id="insightText"></span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 파이차트 + 원인 분석 (나란히) -->
+  <div class="row mb-4">
+
+    <!-- 파이차트 카드 -->
+    <div class="col-md-6 mb-3">
+      <div class="card h-100 shadow-sm scroll-reveal">
+        <div class="card-body">
+          <h6 class="font-weight-bold mb-3">전체 유저 그룹 분포</h6>
+          <div class="d-flex flex-column align-items-center">
+            <div class="chart-container">
+              <canvas id="pieChart"></canvas>
+            </div>
+            <div class="chart-legend">
+              <div class="legend-item">
+                <div class="legend-dot" style="background:#007bff;"></div>
+                <span id="legend-high">-- 명</span>
+                <span class="text-muted small">(고빈도)</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-dot" style="background:#ffc107;"></div>
+                <span id="legend-mid">-- 명</span>
+                <span class="text-muted small">(중빈도)</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-dot" style="background:#dc3545;"></div>
+                <span id="legend-low">-- 명</span>
+                <span class="text-muted small">(저빈도)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 원인 분석 카드 -->
+    <div class="col-md-6 mb-3">
+      <div class="card h-100 shadow-sm scroll-reveal">
+        <div class="card-body d-flex flex-column justify-content-center">
+          <h6 class="font-weight-bold mb-3"><span id="groupLabelText"></span> 원인 분석</h6>
+          <div class="insight-box">
+            <ol id="reasonsList" style="padding-left: 1.2rem; margin-bottom: 0; color: #dde6f0;">
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block script %}
+<script src="{{url_for('static', filename='s03.js')}}"></script>
+{% endblock %}

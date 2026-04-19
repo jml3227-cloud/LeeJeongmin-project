@@ -1,0 +1,515 @@
+/* ===========================
+   OTT Analytics — style.css
+   Dark Mode / Bootstrap 4.6.2
+   =========================== */
+
+/* ---------- 폰트 ---------- */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+/* ---------- 기본 ---------- */
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  background-color: #0f1623 !important;
+  color: #ffffff !important;
+  font-size: 1.05rem;
+  letter-spacing: -0.02em;
+}
+
+/* ---------- 배경색 유틸 ---------- */
+.bg-dark-deep { background-color: #111827 !important; }
+.bg-dark-soft { background-color: #1a2236 !important; } /* 기존 #111827 → 밝게 */
+
+/* ---------- 네비바 ---------- */
+.navbar {
+  background-color: #111827 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  padding: 0.75rem 0;
+}
+
+.navbar-brand {
+  color: #ffffff !important;
+  font-weight: 700;
+  font-size: 1.15rem;
+}
+
+.navbar-brand:hover {
+  color: #60a5fa !important;
+}
+
+.navbar .nav-link {
+  color: #dde6f0 !important;
+  font-size: 0.95rem;
+  font-weight: 500;
+  padding: 0.5rem 1rem !important;
+  transition: color 0.2s;
+}
+
+.navbar .nav-link:hover,
+.navbar .nav-link.active {
+  color: #ffffff !important;
+}
+
+.navbar-toggler {
+  border-color: rgba(255, 255, 255, 0.4) !important;
+  background-color: transparent !important;
+}
+
+.navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255,255,255,0.8)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+}
+
+/* ---------- 히어로 / 캐러셀 ---------- */
+.hero-carousel {
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 3rem;
+}
+
+.carousel-item-inner {
+  background: linear-gradient(135deg, #1a2a4a 0%, #0f1c35 50%, #162236 100%);
+  padding: 5rem 2rem;
+  text-align: center;
+  min-height: 360px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* 이미지 위 어두운 오버레이 */
+.carousel-item-inner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 0;
+}
+
+/* 텍스트가 오버레이 위에 오도록 */
+.carousel-item-inner > div {
+  position: relative;
+  z-index: 1;
+}
+
+.carousel-item-inner h1 {
+  color: #ffffff;
+  font-size: 2.4rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.3;
+  margin-bottom: 1rem;
+}
+
+.carousel-item-inner p {
+  color: #dde6f0;
+  font-size: 1.1rem;
+  line-height: 1.8;
+  margin-bottom: 2rem;
+}
+
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+  filter: invert(0) brightness(1.5);
+}
+
+.carousel-indicators li {
+  background-color: rgba(255,255,255,0.5);
+}
+
+.carousel-indicators .active {
+  background-color: #60a5fa;
+}
+
+/* ---------- 기존 히어로 (혹시 쓸 경우 대비) ---------- */
+.hero-section {
+  background: linear-gradient(180deg, #1a2a4a 0%, #0f1623 100%);
+  border-radius: 16px;
+}
+
+.hero-section h1 {
+  color: #ffffff;
+  letter-spacing: -0.03em;
+}
+
+/* ---------- 카드 ---------- */
+.card {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  background-color: #1a2236;       /* 기존 #111827 → 밝게 */
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.card-body {
+  padding: 1.5rem;
+}
+
+/* 통계 카드 상단 포인트 라인 */
+.card-stat {
+  border-top: 4px solid rgba(255, 255, 255, 0.1);
+}
+
+.card-stat.danger  { border-top-color: #ef4444 !important; }
+.card-stat.success { border-top-color: #10b981 !important; }
+.card-stat.warning { border-top-color: #f59e0b !important; }
+
+.card-stat h2 {
+  font-size: 2.2rem;
+}
+
+/* 통계 카드 텍스트 가독성 */
+.card-stat .text-muted {
+  color: #c8d6ea !important;
+}
+
+/* ---------- 예측 결과 카드 강조 ---------- */
+.card.border-primary {
+  border: 2px solid #3b82f6 !important;
+  background-color: #162040 !important;
+}
+
+.card.border-warning {
+  border: 2px solid #f59e0b !important;
+  background-color: #1f1a00 !important;
+}
+
+.card.border-danger {
+  border: 2px solid #ef4444 !important;
+  background-color: #200a0a !important;
+}
+
+/* ---------- 버튼 ---------- */
+.btn-primary {
+  background-color: #2563eb;
+  border-color: #2563eb;
+  font-weight: 600;
+  font-size: 1rem;
+  border-radius: 8px;
+  padding: 0.6rem 1.5rem;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.btn-primary:hover {
+  background-color: #1d4ed8;
+  border-color: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.btn-outline-light {
+  border-color: rgba(255, 255, 255, 0.6);
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 0.6rem 1.5rem;
+}
+
+.btn-outline-light:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.9);
+}
+
+.btn-outline-secondary {
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #dde6f0;
+  font-size: 1rem;
+  font-weight: 500;
+  border-radius: 8px;
+  padding: 0.55rem 1.4rem;
+  background-color: transparent;
+  transition: all 0.2s;
+}
+
+.btn-outline-secondary:hover {
+  background-color: rgba(255, 255, 255, 0.07);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* ---------- 폼 ---------- */
+.form-control,
+.form-select {
+  background-color: #1f2d44;
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #e8ecf5;
+  border-radius: 8px;
+  font-size: 1rem;
+  padding: 0.45rem 0.75rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-control:focus,
+.form-select:focus {
+  background-color: #243350;
+  border-color: #2563eb;
+  color: #e8ecf5;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+}
+
+select.form-control {
+  appearance: auto;
+  color: #e8ecf5;
+}
+
+.form-check-label {
+  color: #e8ecf5;
+}
+
+/* ---------- 배지 ---------- */
+.badge {
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding: 0.4em 0.75em;
+  border-radius: 5px;
+  letter-spacing: 0.3px;
+}
+
+/* ---------- 알림 ---------- */
+.alert-info {
+  background-color: #162040;
+  border-color: #2563eb;
+  color: #ffffff;
+  border-radius: 8px;
+  font-size: 1rem;
+  padding: 1rem 1.25rem;
+}
+
+.alert-danger {
+  background-color: #200a0a;
+  border-color: #ef4444;
+  color: #fca5a5;
+  border-radius: 8px;
+}
+
+/* ---------- 섹션 라벨 ---------- */
+.section-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #818cf8;
+  margin-bottom: 1rem;
+}
+
+/* ---------- 페이지 제목 ---------- */
+h4.font-weight-bold {
+  font-size: 1.5rem;
+  color: #ffffff;
+}
+
+/* ---------- 본문 소제목 ---------- */
+h3.font-weight-bold {
+  color: #f0f4ff;
+}
+
+/* ---------- text-muted 전역 밝기 조정 ---------- */
+.text-muted {
+  color: #c8d6ea !important;
+}
+
+/* ---------- 파이차트 ---------- */
+.chart-container {
+  width: 360px;
+  height: 360px;
+}
+
+.chart-legend {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 1.2rem;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.legend-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+#legend-high,
+#legend-mid,
+#legend-low {
+  font-size: 0.95rem;
+  color: #dde6f0;
+}
+
+/* ---------- 예측 근거 박스 ---------- */
+.insight-box {
+  background-color: #1a2840;
+  border-left: 4px solid #818cf8;
+  border-radius: 0 12px 12px 0;
+  padding: 1.25rem 1.5rem;
+}
+
+.insight-box .insight-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #818cf8;
+  margin-bottom: 0.75rem;
+}
+
+.insight-box .insight-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+  font-size: 0.95rem;
+  color: #dde6f0;
+  line-height: 1.5;
+}
+
+.insight-box .insight-item:last-child {
+  margin-bottom: 0;
+}
+
+.insight-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #60a5fa;
+  flex-shrink: 0;
+  margin-top: 0.45rem;
+}
+
+/* ---------- 푸터 ---------- */
+.site-footer {
+  background-color: #111827;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 2.5rem 0 1.5rem;
+  margin-top: 4rem;
+}
+
+.site-footer .footer-brand {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: #ffffff;
+  margin-bottom: 0.4rem;
+}
+
+.site-footer .footer-desc {
+  font-size: 0.88rem;
+  color: #c8d6ea;
+  line-height: 1.6;
+}
+
+.site-footer .footer-copy {
+  font-size: 0.82rem;
+  color: #a0b4cc;
+  margin-top: 2rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ---------- 컨테이너 ---------- */
+.container-xl {
+  max-width: 1200px;
+}
+
+/* ---------- 기능 소개 이미지 placeholder ---------- */
+.feature-img-placeholder {
+  background-color: #162236;
+  border-radius: 16px;
+  height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  color: #c8d6ea;
+  font-size: 0.9rem;
+}
+
+/* =============================
+   애니메이션
+   ============================= */
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in-up {
+  opacity: 0;
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.fade-in-up:nth-child(1) { animation-delay: 0.1s; }
+.fade-in-up:nth-child(2) { animation-delay: 0.2s; }
+.fade-in-up:nth-child(3) { animation-delay: 0.3s; }
+.fade-in-up:nth-child(4) { animation-delay: 0.4s; }
+.fade-in-up:nth-child(5) { animation-delay: 0.5s; }
+
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.scroll-reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+  .break-mobile::before {
+    content:'\A';
+    white-space: pre;
+  }
+
+  .carousel-item-inner h1 {
+    font-size: 1.6rem;
+  }
+
+  .carousel-item-inner {
+    padding: 3rem 1.5rem;
+    min-height: 280px;
+  }
+
+  .carousel-item-inner p {
+    font-size: 0.8rem;
+  }
+
+  .hero-section h1 {
+    font-size: 1.8rem;
+  }
+
+  .hero-section p {
+    font-size: 0.95rem;
+  }
+
+  h4.font-weight-bold {
+    font-size: 1.2rem;
+  }
+
+  .card-stat h2 {
+    font-size: 1.6rem;
+  }
+
+  .chart-container {
+    width: 280px;
+    height: 280px;
+  }
+}
+
+.card-stat .section-label {
+  color: #ffffff;
+}
+
+.feature-img {
+    height: 200px !important;
+  }

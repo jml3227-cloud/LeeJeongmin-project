@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}유저 조회 — OTT Analytics{% endblock %}
+
+{% block content %}
+
+<div class="mb-4">
+  <h4 class="font-weight-bold">기존 유저 조회</h4>
+  <p class="text-muted">유저 번호를 입력하면 DB에 저장된 데이터를 기반으로 <span class="break-mobile">이탈 위험 그룹을 분석합니다</span></p>
+</div>
+
+<form method="POST" action="{{ url_for('churn.lookup') }}">
+  {{ form.hidden_tag() }}
+  {% include "form_errors.html" %}
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <p class="section-label">유저 번호 입력</p>
+      <div class="row align-items-end">
+        <div class="col-md-4 mb-3 mb-md-0">
+          <label class="form-label small font-weight-bold">User SEQ</label>
+          <input type="number" name="user_seq" class="form-control" placeholder="예: 42" value="{{ user_seq_input }}" min="1" max="{{ max_seq }}">
+        </div>
+        <div class="col-md-2">
+          <button type="submit" class="btn btn-primary w-100">조회</button>
+        </div>
+      </div>
+      {% if error %}
+      <div class="alert alert-danger mt-3 mb-0">{{ error }}</div>
+      {% endif %}
+    </div>
+  </div>
+</form>
+
+{% if result %}
+
+<!-- 결과 카드 -->
+<div class="card shadow-sm mb-4 scroll-reveal">
+  <div class="card-body">
+    <h6 class="font-weight-bold mb-3">예측 결과 — USER #{{ result.user_seq }}</h6>
+    <div class="row">
+
+      <div class="col-md-4 mb-3">
+        <div class="card h-100 {% if result.freq_group == 2 %}border-primary{% endif %}" id="card-high">
+          <div class="card-body text-center">
+            {% if result.freq_group == 2 %}
+            <div style="margin-bottom: 0.5rem;"><span class="badge badge-light">해당</span></div>
+            {% endif %}
+            <span class="badge badge-primary mb-2">고빈도</span>
+            <h6 class="font-weight-bold mt-2">안정 구독자</h6>
+            <p class="text-muted small mb-0">매일~주 5회 이상 이용<br>이탈 위험 낮음</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4 mb-3">
+        <div class="card h-100 {% if result.freq_group == 1 %}border-warning{% endif %}" id="card-mid">
+          <div class="card-body text-center">
+            {% if result.freq_group == 1 %}
+            <div style="margin-bottom: 0.5rem;"><span class="badge badge-light">해당</span></div>
+            {% endif %}
+            <span class="badge badge-warning mb-2">중빈도</span>
+            <h6 class="font-weight-bold mt-2">관찰 필요 구독자</h6>
+            <p class="text-muted small mb-0">주 1~4회 이용<br>이탈 위험 관찰 대상</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4 mb-3">
+        <div class="card h-100 {% if result.freq_group == 0 %}border-danger{% endif %}" id="card-low">
+          <div class="card-body text-center">
+            {% if result.freq_group == 0 %}
+            <div style="margin-bottom: 0.5rem;"><span class="badge badge-light">해당</span></div>
+            {% endif %}
+            <span class="badge badge-danger mb-2">저빈도</span>
+            <h6 class="font-weight-bold mt-2">이탈 위험군</h6>
+            <p class="text-muted small mb-0">월 1~3회 이하 이용<br>적극적 개입 필요</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="alert alert-info mb-0">
+      {{ result.insight }}
+    </div>
+  </div>
+</div>
+
+<!-- 원인 분석 카드 -->
+<div class="card shadow-sm mb-4 scroll-reveal">
+  <div class="card-body">
+    <h6 class="font-weight-bold mb-3">{{ result.group_label }} 원인 분석</h6>
+    <div class="insight-box">
+      <ol style="padding-left: 1.2rem; margin-bottom: 0; color: #dde6f0;">
+        {% for reason in result.reasons %}
+        <li style="margin-bottom: 0.5rem;">{{ reason }}</li>
+        {% endfor %}
+      </ol>
+    </div>
+  </div>
+</div>
+
+{% endif %}
+
+{% endblock %}

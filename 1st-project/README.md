@@ -36,8 +36,15 @@ DB_DSN=localhost:1521/xe
 
 ### 3. Flask 실행
 
+`ottproject.cmd`를 실행하면 가상환경 활성화 및 Flask 서버가 자동으로 시작됩니다.
+
+- 실행 경로: `C:\Flask_projects\first_project`
+- 호스트: `0.0.0.0`, 포트: `5000`
+
+직접 실행할 경우:
 ```
-flask run
+set FLASK_APP=ott
+flask run --host=0.0.0.0 --port=5000
 ```
 
 ## 데이터 출처

@@ -4,6 +4,8 @@
 
 ## 폴더 구조
 
+<pre>
+```
 deep_learning/
 ├── dnn/
 │   ├── perceptron.py
@@ -16,7 +18,8 @@ deep_learning/
 ├── cnn/
 │   └── cnn.py
 └── README.md
-
+```
+</pre>
 ## 구현 내용
 
 ### DNN

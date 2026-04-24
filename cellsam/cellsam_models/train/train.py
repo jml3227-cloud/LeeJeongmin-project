@@ -101,6 +101,14 @@ def main(args):
                 print(f'Epoch [{epoch+1} / {args.epochs}]'
                       f'Step [{i+1} / {len(dataloader)}]'
                       f'Loss: {losses.item():.4f}')
+        
+        if args.output_dir:
+            os.makedirs(args.output_dir, exist_ok=True)
+            torch.save({
+                'epoch': epoch,
+                'model': model.state_dict(),
+                'optimizer': optimizer.state_dict(),
+            }, os.path.join(args.output_dir, f'checkpoint_epoch{epoch}.pth'))
                 
 if __name__ == '__main__':
     parser = get_args_parser()

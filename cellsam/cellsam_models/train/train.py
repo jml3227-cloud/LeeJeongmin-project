@@ -4,10 +4,8 @@ from torch.utils.data import DataLoader
 import sys
 import os
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-
-from anchor_detr import build
-from train.dataset import MoNuSACDataset, collate_fn
+from cellsam_models.anchor_detr import build
+from cellsam_models.train.dataset import MoNuSACDataset, collate_fn
 
 def get_args_parser():
     parser = argparse.ArgumentParser('CellSAM Training')

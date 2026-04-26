@@ -40,12 +40,17 @@ class MoNuSACDataset(Dataset):
 
         image = resize(image, [1024, 1024])
 
-        scale_x = 1024 / W
-        scale_y = 1024 / H
-        boxes[:, 0] *= scale_x
-        boxes[:, 2] *= scale_x
-        boxes[:, 1] *= scale_y
-        boxes[:, 3] *= scale_y
+        x_min = boxes[:, 0] / W
+        y_min = boxes[:, 1] / H
+        x_max = boxes[:, 2] / W
+        y_max = boxes[:, 3] / H
+
+        cx = (x_min + x_max) / 2
+        cy = (y_min + y_max) / 2
+        w = x_max - x_min
+        h = y_max - y_min
+
+        boxes = torch.stack([cx, cy, w, h], dim=1)
 
         masks = resize(masks, [1024, 1024], interpolation=InterpolationMode.NEAREST)
 

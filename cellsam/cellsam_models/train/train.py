@@ -14,7 +14,7 @@ def get_args_parser():
     parser.add_argument('--lr', default=1e-4, type=float)
     parser.add_argument('--lr_backbone', default=1e-5, type=float)
     parser.add_argument('--weight_decay', default=1e-4, type=float)
-    parser.add_argument('--epochs', default=1, type=int)    # 실제 학습시 에포크 수정
+    parser.add_argument('--epochs', default=5, type=int)    # 실제 학습시 에포크 수정
     parser.add_argument('--clip_max_norm', default=0.1, type=float)
     parser.add_argument('--batch_size', default=2, type=int)
     
@@ -23,7 +23,7 @@ def get_args_parser():
     parser.add_argument('--freeze_backbone', default=False, action='store_true')
     parser.add_argument('--num_feature_levels', default=1, type=int)
     parser.add_argument('--sam_checkpoint', 
-                    default='/home/jml3227/cellsam/sam_vit_b_01ec64.pth', 
+                    default='/workspace/LeeJeongmin-project/cellsam/sam_vit_b_01ec64.pth', 
                     type=str)
     
     # transformer

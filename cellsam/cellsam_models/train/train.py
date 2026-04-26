@@ -11,10 +11,10 @@ def get_args_parser():
     parser = argparse.ArgumentParser('CellSAM Training')
     
     # 학습 관련
-    parser.add_argument('--lr', default=1e-4, type=float)
+    parser.add_argument('--lr', default=1e-3, type=float) # 논문값은 1e-4지만 loss가 줄어드는 추세가 보이지 않아 1e-3으로 늘려서 시도
     parser.add_argument('--lr_backbone', default=1e-5, type=float)
     parser.add_argument('--weight_decay', default=1e-4, type=float)
-    parser.add_argument('--epochs', default=5, type=int)    # 실제 학습시 에포크 수정
+    parser.add_argument('--epochs', default=10, type=int)    # 실제 학습시 에포크 수정
     parser.add_argument('--clip_max_norm', default=0.1, type=float)
     parser.add_argument('--batch_size', default=2, type=int)
     
@@ -52,7 +52,7 @@ def get_args_parser():
     # 기타
     parser.add_argument('--device', default='cuda', type=str)
     parser.add_argument('--data_path', default='/workspace/monusac', type=str)
-    parser.add_argument('--output_dir', default='/home/jml3227/cellsam/outputs', type=str)
+    parser.add_argument('--output_dir', default='/workspace/LeeJeongmin-project/cellsam/outputs', type=str)
     
     return parser
 

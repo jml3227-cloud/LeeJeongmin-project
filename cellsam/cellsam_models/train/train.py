@@ -51,7 +51,7 @@ def get_args_parser():
     
     # 기타
     parser.add_argument('--device', default='cuda', type=str)
-    parser.add_argument('--data_path', default='/home/jml3227/MoNuSAC_processed', type=str)
+    parser.add_argument('--data_path', default='/workspace/monusac', type=str)
     parser.add_argument('--output_dir', default='/home/jml3227/cellsam/outputs', type=str)
     
     return parser

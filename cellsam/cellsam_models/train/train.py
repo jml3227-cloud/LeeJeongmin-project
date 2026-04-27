@@ -108,10 +108,12 @@ def main(args):
             optimizer.step()
 
             if i % 10 == 0:
-                print(f'Epoch [{epoch+1} / {args.epochs}]'
-                      f'Step [{i+1} / {len(train_dataloader)}]'
-                      f'Loss: {losses.item():.4f}')
-        
+                print(f'Epoch [{epoch+1}/{args.epochs}] Step [{i+1}/{len(dataloader)}] '
+                    f'loss_ce: {loss_dict["loss_ce"].item():.4f} | '
+                    f'loss_bbox: {loss_dict["loss_bbox"].item():.4f} | '
+                    f'loss_giou: {loss_dict["loss_giou"].item():.4f} | '
+                    f'total: {losses.item():.4f}')
+            
         model.eval()
         criterion.eval()
         val_loss = 0.0

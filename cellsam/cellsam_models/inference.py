@@ -31,6 +31,16 @@ def get_args():
     parser.add_argument('--dice_loss_coef', default=1.0, type=float)
     parser.add_argument('--focal_alpha', default=0.25, type=float)
     parser.add_argument('--dec_layers', default=6, type=int)
+
+    parser.add_argument('--hidden_dim', default=256, type=int)
+    parser.add_argument('--nheads', default=8, type=int)
+    parser.add_argument('--enc_layers', default=6, type=int)
+    parser.add_argument('--dim_feedforward', default=1024, type=int)
+    parser.add_argument('--dropout', default=0.1, type=float)
+    parser.add_argument('--num_query_position', default=3500, type=int)
+    parser.add_argument('--num_query_pattern', default=1, type=int)
+    parser.add_argument('--spatial_prior', default='learned', type=str)
+    parser.add_argument('--attention_type', default='RCDA', type=str)
     return parser.parse_args()
 
 def main():

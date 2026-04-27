@@ -21,6 +21,16 @@ def get_args():
     parser.add_argument('--aux_loss', default=True, type=bool)
     parser.add_argument('--masks', default=False, type=bool)
     parser.add_argument('--sam_checkpoint', default='/workspace/LeeJeongmin-project/cellsam/sam_vit_b_01ec64.pth', type=str)
+    
+    parser.add_argument('--only_neck', default=False, type=bool)
+    parser.add_argument('--freeze_backbone', default=False, type=bool)
+    parser.add_argument('--cls_loss_coef', default=2.0, type=float)
+    parser.add_argument('--bbox_loss_coef', default=5.0, type=float)
+    parser.add_argument('--giou_loss_coef', default=2.0, type=float)
+    parser.add_argument('--mask_loss_coef', default=1.0, type=float)
+    parser.add_argument('--dice_loss_coef', default=1.0, type=float)
+    parser.add_argument('--focal_alpha', default=0.25, type=float)
+    parser.add_argument('--dec_layers', default=6, type=int)
     return parser.parse_args()
 
 def main():

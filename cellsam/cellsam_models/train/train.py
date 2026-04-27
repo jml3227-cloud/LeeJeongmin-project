@@ -11,10 +11,10 @@ def get_args_parser():
     parser = argparse.ArgumentParser('CellSAM Training')
     
     # 학습 관련
-    parser.add_argument('--lr', default=1e-3, type=float) # 논문값은 1e-4지만 loss가 줄어드는 추세가 보이지 않아 1e-3으로 늘려서 시도
+    parser.add_argument('--lr', default=1e-4, type=float) 
     parser.add_argument('--lr_backbone', default=1e-5, type=float)
     parser.add_argument('--weight_decay', default=1e-4, type=float)
-    parser.add_argument('--epochs', default=10, type=int)    # 실제 학습시 에포크 수정
+    parser.add_argument('--epochs', default=50, type=int)    # 실제 학습시 에포크 수정
     parser.add_argument('--clip_max_norm', default=0.1, type=float)
     parser.add_argument('--batch_size', default=2, type=int)
     
@@ -65,8 +65,11 @@ def main(args):
     criterion.to(device)
 
     # dataset, dataloader
-    dataset = MoNuSACDataset(args.data_path)
-    dataloader = DataLoader(dataset, batch_size=args.batch_size,
+    train_dataset = MoNuSACDataset(args.data_path, split='train')
+    val_dataset = MoNuSACDataset(args.data_path, split='val')
+    train_dataloader = DataLoader(train_dataset, batch_size=args.batch_size,
+                            shuffle=True, collate_fn=collate_fn)
+    val_dataloader = DataLoader(val_dataset, batch_size=args.batch_size,
                             shuffle=True, collate_fn=collate_fn)
     
     # optimizer
@@ -77,7 +80,7 @@ def main(args):
         model.train()
         criterion.train()
 
-        for i, (images, targets) in enumerate(dataloader):
+        for i, (images, targets) in enumerate(train_dataloader):
             images = images.to(device)
             targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
 
@@ -99,8 +102,24 @@ def main(args):
 
             if i % 10 == 0:
                 print(f'Epoch [{epoch+1} / {args.epochs}]'
-                      f'Step [{i+1} / {len(dataloader)}]'
+                      f'Step [{i+1} / {len(train_dataloader)}]'
                       f'Loss: {losses.item():.4f}')
+        
+        model.eval()
+        criterion.eval()
+        val_loss = 0.0
+        with torch.no_grad():
+            for images, targets in val_dataloader:
+                images = images.to(device)
+                targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
+                outputs = model(images)
+                loss_dict = criterion(outputs, targets)
+                losses = sum(loss_dict[k] * weight_dict[k]
+                         for k in loss_dict.keys() if k in weight_dict)
+                val_loss += losses.item()
+        
+        val_loss /= len(val_dataloader)
+        print(f'Epoch [{epoch+1} / {args.epochs}] Val loss: {val_loss:.4f}')
         
         if args.output_dir and (epoch + 1 == args.epochs):
             os.makedirs(args.output_dir, exist_ok=True)
@@ -108,7 +127,7 @@ def main(args):
                 'epoch': epoch,
                 'model': model.state_dict(),
                 'optimizer': optimizer.state_dict(),
-            }, os.path.join(args.output_dir, f'checkpoint_epoch{epoch}.pth'))
+            }, os.path.join(args.output_dir, f'checkpoint_epoch{epoch+1}.pth'))
                 
 if __name__ == '__main__':
     parser = get_args_parser()

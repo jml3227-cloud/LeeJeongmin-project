@@ -75,6 +75,7 @@ def main():
     scores = pred_logits.sigmoid().max(-1).values
     print(f"최대 score: {scores.max().item():.4f}")
     print(f"평균 score: {scores.mean().item():.4f}")
+    print(f"score 표준편차: {scores.std().item():.4f}")
     
     keep = scores > args.threshold
 

@@ -1,17 +1,17 @@
 import argparse
 import torch
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, ConcatDataset
 import sys
 import os
 
 from cellsam_models.anchor_detr import build
-from cellsam_models.train.dataset import MoNuSACDataset, collate_fn
+from cellsam_models.train.dataset import MoNuSACDataset, TNBCDataset, collate_fn
 
 def get_args_parser():
     parser = argparse.ArgumentParser('CellSAM Training')
     
     # 학습 관련
-    parser.add_argument('--lr', default=1e-3, type=float) # 논문 값은 1e-4 지만 val loss가 18로 수렴하는 거 같아 수정해봄 
+    parser.add_argument('--lr', default=1e-4, type=float) 
     parser.add_argument('--lr_backbone', default=1e-5, type=float)
     parser.add_argument('--weight_decay', default=1e-4, type=float)
     parser.add_argument('--epochs', default=50, type=int)    # 실제 학습시 에포크 수정
@@ -51,7 +51,7 @@ def get_args_parser():
     
     # 기타
     parser.add_argument('--device', default='cuda', type=str)
-    parser.add_argument('--data_path', default='/workspace/monusac', type=str)
+    parser.add_argument('--data_dir', default='/workspace', type=str)
     parser.add_argument('--output_dir', default='/workspace/LeeJeongmin-project/cellsam/outputs', type=str)
     
     return parser
@@ -65,8 +65,15 @@ def main(args):
     criterion.to(device)
 
     # dataset, dataloader
-    train_dataset = MoNuSACDataset(args.data_path, split='train')
-    val_dataset = MoNuSACDataset(args.data_path, split='val')
+    monusac_train = MoNuSACDataset(os.path.join(args.data_dir,'monusac'), split='train')
+    monusac_val = MoNuSACDataset(os.path.join(args.data_dir,'monusac'), split='val')
+
+    tnbc_train = TNBCDataset(os.path.join(args.data_dir,'tnbc'), split='train')
+    tnbc_val = TNBCDataset(os.path.join(args.data_dir,'tnbc'), split='val')
+
+    train_dataset = ConcatDataset([monusac_train, tnbc_train])
+    val_dataset = ConcatDataset([monusac_val, tnbc_val])
+
     train_dataloader = DataLoader(train_dataset, batch_size=args.batch_size,
                             shuffle=True, collate_fn=collate_fn)
     val_dataloader = DataLoader(val_dataset, batch_size=args.batch_size,

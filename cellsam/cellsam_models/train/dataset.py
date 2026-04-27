@@ -6,10 +6,11 @@ from skimage.draw import polygon as sk_polygon
 import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision.transforms.functional import resize, InterpolationMode
+from sklearn.model_selection import train_test_split
 
 
 class MoNuSACDataset(Dataset):
-    def __init__(self, root_dir):
+    def __init__(self, root_dir, split='train'):
         self.samples = []
         files = os.listdir(root_dir)
         tif_files = sorted([f for f in files if f.endswith('.tif')])
@@ -22,6 +23,16 @@ class MoNuSACDataset(Dataset):
                     os.path.join(root_dir, tif_file),
                     os.path.join(root_dir, xml_file)
                 ))
+
+        train_samples, temp_samples = train_test_split(self.samples, test_size=0.2, random_state=42)
+        val_samples, test_samples = train_test_split(temp_samples, test_size=0.5, random_state=42)
+
+        if split == 'train':
+            self.samples = train_samples
+        elif split == 'val':
+            self.samples = val_samples
+        elif split == 'test':
+            self.samples = test_samples
     
     def __len__(self):
         return len(self.samples)
@@ -84,7 +95,7 @@ class MoNuSACDataset(Dataset):
 
             if x_max <= x_min or y_max <= y_min:
                 continue
-            
+
             boxes.append([x_min, y_min, x_max, y_max])
 
             # binary mask

@@ -81,6 +81,10 @@ class MoNuSACDataset(Dataset):
             x_max = min(W-1, max(xs))
             y_min = max(0, min(ys))
             y_max = min(H-1, max(ys))
+
+            if x_max <= x_min or y_max <= y_min:
+                continue
+            
             boxes.append([x_min, y_min, x_max, y_max])
 
             # binary mask

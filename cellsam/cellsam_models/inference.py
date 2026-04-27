@@ -13,6 +13,7 @@ def get_args():
     parser.add_argument('--image_path', type=str, required=True)
     parser.add_argument('--output_path', default='result.png', type=str)
     parser.add_argument('--threshold', default=0.5, type=float)
+    parser.add_argument('--device', default='cuda', type=str)
 
     # build에 필요한 args
     parser.add_argument('--lr_backbone', default=1e-5, type=float)

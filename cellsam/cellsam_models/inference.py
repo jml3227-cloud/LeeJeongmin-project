@@ -73,6 +73,9 @@ def main():
     pred_boxes = outputs['pred_boxes'][0]
 
     scores = pred_logits.sigmoid().max(-1).values
+    print(f"최대 score: {scores.max().item():.4f}")
+    print(f"평균 score: {scores.mean().item():.4f}")
+    
     keep = scores > args.threshold
 
     boxes = pred_boxes[keep].cpu().numpy()

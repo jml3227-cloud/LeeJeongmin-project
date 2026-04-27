@@ -7,3 +7,7 @@ lxml
 scikit-learn
 torch
 torchvision
+numpy
+pillow
+segment-anything
+packaging

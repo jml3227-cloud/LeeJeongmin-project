@@ -78,6 +78,8 @@ def main():
     
     keep = scores > args.threshold
 
+    print(f"keep 개수: {keep.sum().item()}")
+
     boxes = pred_boxes[keep].cpu().numpy()
     scores = scores[keep].cpu().numpy()
 

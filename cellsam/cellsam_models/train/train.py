@@ -11,7 +11,7 @@ def get_args_parser():
     parser = argparse.ArgumentParser('CellSAM Training')
     
     # 학습 관련
-    parser.add_argument('--lr', default=1e-4, type=float) 
+    parser.add_argument('--lr', default=1e-3, type=float) # 논문 값은 1e-4 지만 val loss가 18로 수렴하는 거 같아 수정해봄 
     parser.add_argument('--lr_backbone', default=1e-5, type=float)
     parser.add_argument('--weight_decay', default=1e-4, type=float)
     parser.add_argument('--epochs', default=50, type=int)    # 실제 학습시 에포크 수정

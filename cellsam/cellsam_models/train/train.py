@@ -102,7 +102,7 @@ def main(args):
                       f'Step [{i+1} / {len(dataloader)}]'
                       f'Loss: {losses.item():.4f}')
         
-        if args.output_dir:
+        if args.output_dir and (epoch + 1 == args.epochs):
             os.makedirs(args.output_dir, exist_ok=True)
             torch.save({
                 'epoch': epoch,

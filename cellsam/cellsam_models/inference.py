@@ -41,6 +41,10 @@ def get_args():
     parser.add_argument('--num_query_pattern', default=1, type=int)
     parser.add_argument('--spatial_prior', default='learned', type=str)
     parser.add_argument('--attention_type', default='RCDA', type=str)
+
+    parser.add_argument('--set_cost_class', default=2.0, type=float)
+    parser.add_argument('--set_cost_bbox', default=5.0, type=float)
+    parser.add_argument('--set_cost_giou', default=2.0, type=float)
     return parser.parse_args()
 
 def main():

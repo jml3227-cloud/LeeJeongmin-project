@@ -14,16 +14,17 @@ def get_args_parser():
     parser.add_argument('--lr', default=1e-4, type=float) 
     parser.add_argument('--lr_backbone', default=1e-5, type=float)
     parser.add_argument('--weight_decay', default=1e-4, type=float)
-    parser.add_argument('--epochs', default=50, type=int)    # 실제 학습시 에포크 수정
+    parser.add_argument('--epochs', default=50, type=int)
     parser.add_argument('--clip_max_norm', default=0.1, type=float)
     parser.add_argument('--batch_size', default=2, type=int)
+    parser.add_argument('--patience', default=10, type=int)  # early stopping patience
     
     # backbone
     parser.add_argument('--only_neck', default=False, action='store_true')
     parser.add_argument('--freeze_backbone', default=False, action='store_true')
     parser.add_argument('--num_feature_levels', default=1, type=int)
     parser.add_argument('--sam_checkpoint', 
-                    default='/workspace/LeeJeongmin-project/cellsam/sam_vit_b_01ec64.pth', 
+                    default='/workspace/sam_vit_b_01ec64.pth', 
                     type=str)
     
     # transformer
@@ -65,11 +66,11 @@ def main(args):
     criterion.to(device)
 
     # dataset, dataloader
-    monusac_train = MoNuSACDataset(os.path.join(args.data_dir,'monusac'), split='train')
-    monusac_val = MoNuSACDataset(os.path.join(args.data_dir,'monusac'), split='val')
+    monusac_train = MoNuSACDataset(os.path.join(args.data_dir, 'monusac'), split='train')
+    monusac_val = MoNuSACDataset(os.path.join(args.data_dir, 'monusac'), split='val')
 
-    tnbc_train = TNBCDataset(os.path.join(args.data_dir,'tnbc'), split='train')
-    tnbc_val = TNBCDataset(os.path.join(args.data_dir,'tnbc'), split='val')
+    tnbc_train = TNBCDataset(os.path.join(args.data_dir, 'tnbc'), split='train')
+    tnbc_val = TNBCDataset(os.path.join(args.data_dir, 'tnbc'), split='val')
 
     nuinsseg_train = NuInsSegDataset(os.path.join(args.data_dir, 'nuinsseg'), split='train')
     nuinsseg_val = NuInsSegDataset(os.path.join(args.data_dir, 'nuinsseg'), split='val')
@@ -80,15 +81,20 @@ def main(args):
     train_dataloader = DataLoader(train_dataset, batch_size=args.batch_size,
                             shuffle=True, collate_fn=collate_fn, num_workers=4)
     val_dataloader = DataLoader(val_dataset, batch_size=args.batch_size,
-                            shuffle=True, collate_fn=collate_fn, num_workers=4)
+                            shuffle=False, collate_fn=collate_fn, num_workers=4)
     
     # optimizer
     param_groups = [
-    {'params': [p for n, p in model.named_parameters() if 'backbone' in n], 'lr': args.lr_backbone},
-    {'params': [p for n, p in model.named_parameters() if 'backbone' not in n], 'lr': args.lr}
-]
+        {'params': [p for n, p in model.named_parameters() if 'backbone' in n], 'lr': args.lr_backbone},
+        {'params': [p for n, p in model.named_parameters() if 'backbone' not in n], 'lr': args.lr}
+    ]
     optimizer = torch.optim.AdamW(param_groups, weight_decay=args.weight_decay)
-    
+
+    # early stopping 변수
+    best_val_loss = float('inf')
+    patience_counter = 0
+    os.makedirs(args.output_dir, exist_ok=True)
+
     for epoch in range(args.epochs):
         model.train()
         criterion.train()
@@ -97,16 +103,13 @@ def main(args):
             images = images.to(device)
             targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
 
-            # forward
             outputs = model(images)
 
-            # loss 계산
             loss_dict = criterion(outputs, targets)
             weight_dict = criterion.weight_dict
             losses = sum(loss_dict[k] * weight_dict[k]
                          for k in loss_dict.keys() if k in weight_dict)
             
-            # backward 
             optimizer.zero_grad()
             losses.backward()
             if args.clip_max_norm > 0:
@@ -120,6 +123,7 @@ def main(args):
                     f'loss_giou: {loss_dict["loss_giou"].item():.4f} | '
                     f'total: {losses.item():.4f}')
             
+        # validation
         model.eval()
         criterion.eval()
         val_loss = 0.0
@@ -135,14 +139,30 @@ def main(args):
         
         val_loss /= len(val_dataloader)
         print(f'Epoch [{epoch+1} / {args.epochs}] Val loss: {val_loss:.4f}')
-        
-        if args.output_dir and (epoch + 1 == args.epochs):
-            os.makedirs(args.output_dir, exist_ok=True)
-            torch.save({
-                'epoch': epoch,
-                'model': model.state_dict(),
-                'optimizer': optimizer.state_dict(),
-            }, os.path.join(args.output_dir, f'checkpoint_epoch{epoch+1}.pth'))
+
+        # checkpoint 저장
+        ckpt = {
+            'epoch': epoch + 1,
+            'model': model.state_dict(),
+            'optimizer': optimizer.state_dict(),
+            'val_loss': val_loss,
+        }
+
+        # 마지막 epoch 저장
+        torch.save(ckpt, os.path.join(args.output_dir, 'checkpoint_last.pth'))
+
+        # best val loss 저장
+        if val_loss < best_val_loss:
+            best_val_loss = val_loss
+            patience_counter = 0
+            torch.save(ckpt, os.path.join(args.output_dir, 'checkpoint_best.pth'))
+            print(f'  → best 갱신: {best_val_loss:.4f} (epoch {epoch+1})')
+        else:
+            patience_counter += 1
+            print(f'  → patience: {patience_counter}/{args.patience}')
+            if patience_counter >= args.patience:
+                print(f'Early stopping at epoch {epoch+1}')
+                break
                 
 if __name__ == '__main__':
     parser = get_args_parser()

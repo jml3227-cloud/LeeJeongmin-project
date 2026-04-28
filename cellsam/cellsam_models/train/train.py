@@ -5,7 +5,7 @@ import sys
 import os
 
 from cellsam_models.anchor_detr import build
-from cellsam_models.train.dataset import MoNuSACDataset, TNBCDataset, collate_fn
+from cellsam_models.train.dataset import MoNuSACDataset, TNBCDataset, NuInsSegDataset, collate_fn
 
 def get_args_parser():
     parser = argparse.ArgumentParser('CellSAM Training')
@@ -71,8 +71,11 @@ def main(args):
     tnbc_train = TNBCDataset(os.path.join(args.data_dir,'tnbc'), split='train')
     tnbc_val = TNBCDataset(os.path.join(args.data_dir,'tnbc'), split='val')
 
-    train_dataset = ConcatDataset([monusac_train, tnbc_train])
-    val_dataset = ConcatDataset([monusac_val, tnbc_val])
+    nuinsseg_train = NuInsSegDataset(os.path.join(args.data_dir, 'nuinsseg'), split='train')
+    nuinsseg_val = NuInsSegDataset(os.path.join(args.data_dir, 'nuinsseg'), split='val')
+
+    train_dataset = ConcatDataset([monusac_train, tnbc_train, nuinsseg_train])
+    val_dataset = ConcatDataset([monusac_val, tnbc_val, nuinsseg_val])
 
     train_dataloader = DataLoader(train_dataset, batch_size=args.batch_size,
                             shuffle=True, collate_fn=collate_fn)

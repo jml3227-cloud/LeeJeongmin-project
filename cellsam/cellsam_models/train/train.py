@@ -78,9 +78,9 @@ def main(args):
     val_dataset = ConcatDataset([monusac_val, tnbc_val, nuinsseg_val])
 
     train_dataloader = DataLoader(train_dataset, batch_size=args.batch_size,
-                            shuffle=True, collate_fn=collate_fn)
+                            shuffle=True, collate_fn=collate_fn, num_workers=4)
     val_dataloader = DataLoader(val_dataset, batch_size=args.batch_size,
-                            shuffle=True, collate_fn=collate_fn)
+                            shuffle=True, collate_fn=collate_fn, num_workers=4)
     
     # optimizer
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr,

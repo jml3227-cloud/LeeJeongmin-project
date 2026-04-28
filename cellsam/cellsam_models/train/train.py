@@ -83,8 +83,11 @@ def main(args):
                             shuffle=True, collate_fn=collate_fn, num_workers=4)
     
     # optimizer
-    optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr,
-                                  weight_decay=args.weight_decay)
+    param_groups = [
+    {'params': [p for n, p in model.named_parameters() if 'backbone' in n], 'lr': args.lr_backbone},
+    {'params': [p for n, p in model.named_parameters() if 'backbone' not in n], 'lr': args.lr}
+]
+    optimizer = torch.optim.AdamW(param_groups, weight_decay=args.weight_decay)
     
     for epoch in range(args.epochs):
         model.train()

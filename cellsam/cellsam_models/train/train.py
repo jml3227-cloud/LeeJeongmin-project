@@ -54,6 +54,7 @@ def get_args_parser():
     parser.add_argument('--device', default='cuda', type=str)
     parser.add_argument('--data_dir', default='/workspace', type=str)
     parser.add_argument('--output_dir', default='/workspace/LeeJeongmin-project/cellsam/outputs', type=str)
+    parser.add_argument('--resume', default=None, type=str)
     
     return parser
 
@@ -94,8 +95,17 @@ def main(args):
     best_val_loss = float('inf')
     patience_counter = 0
     os.makedirs(args.output_dir, exist_ok=True)
+    
+    start_epoch = 0
+    if args.resume:
+        ckpt = torch.load(args.resume, map_location=device)
+        model.load_state_dict(ckpt['model'])
+        optimizer.load_state_dict(ckpt['optimizer'])
+        start_epoch = ckpt['epoch']
+        best_val_loss = ckpt['val_loss']
+        print(f'resume: epoch {start_epoch}부터 시작')
 
-    for epoch in range(args.epochs):
+    for epoch in range(start_epoch, args.epochs):
         model.train()
         criterion.train()
 

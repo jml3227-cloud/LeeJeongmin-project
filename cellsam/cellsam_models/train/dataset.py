@@ -46,7 +46,7 @@ class MoNuSACDataset(Dataset):
 
         boxes, masks = self.parse_xml(xml_path, H, W)
 
-        if len(boxes) > 400:
+        if len(boxes) > 450:
             return self.__getitem__((idx + 1) % len(self.samples))
     
         if len(boxes) == 0:
@@ -153,7 +153,7 @@ class TNBCDataset(Dataset):
         if len(boxes) == 0:
             return self.__getitem__((idx + 1) % len(self.samples))
             
-        if len(boxes) > 400:
+        if len(boxes) > 450:
             return self.__getitem__((idx + 1) % len(self.samples))
         
         image = torch.tensor(image).permute(2, 0, 1).float() / 255.0

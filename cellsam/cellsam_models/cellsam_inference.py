@@ -146,7 +146,11 @@ class CellSAM(nn.Module):
         processed = []
         paddings = []
         for img in images:
-            img_np = (img.permute(1, 2, 0).cpu().numpy() * 255).astype(np.uint8)
+            img_np = img.permute(1, 2, 0).cpu().numpy()
+            if img_np.max() <= 1.0:
+                img_np = (img_np * 255).astype(np.uint8)
+            else:
+                img_np = img_np.astype(np.uint8)
             img_resized = self.sam_transform.apply_image(img_np)
             img_tensor = torch.from_numpy(img_resized).permute(2, 0, 1).float().to(self.device)
             img_tensor, padding = self.sam_preprocess(img_tensor, return_paddings=True)

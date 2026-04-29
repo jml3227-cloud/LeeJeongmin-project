@@ -25,7 +25,6 @@ def get_args():
 
 def load_image(image_path):
     image = np.array(Image.open(image_path).convert('RGB'))
-    image = normalize_image(image)
     return image
 
 def visualize(image, mask, output_path):

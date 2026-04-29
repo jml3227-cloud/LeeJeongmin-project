@@ -139,6 +139,7 @@ class CellSAM(nn.Module):
                 except:
                     pass
             
+            print(f"threshold: {threshold}")
             filtered_boxes.append(boxes[data > threshold])
             print(f"bbox 개수 (threshold 후): {len(filtered_boxes[-1])}")
         

@@ -21,6 +21,7 @@ def get_args():
     parser.add_argument('--mode', default='visualize', choices=['visualize', 'eval'])
     parser.add_argument('--data_dir', default='/workspace', type=str)
     parser.add_argument('--device', default='cuda', type=str)
+    parser.add_argument('--iou_threshold', default=0.5, type=float)
     return parser.parse_args()
 
 def load_image(image_path):
@@ -97,6 +98,7 @@ def main():
         neck_checkpoint=args.neck_checkpoint,
         device=str(device)
     )
+    model.iou_threshold = args.iou_threshold
     model.eval()
 
     if args.mode == 'visualize':

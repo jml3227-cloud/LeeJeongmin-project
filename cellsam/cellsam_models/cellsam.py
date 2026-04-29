@@ -103,7 +103,8 @@ def main():
 
     if args.mode == 'visualize':
         image = load_image(args.image_path)
-        image_tensor = torch.from_numpy(image).permute(2, 0, 1).float().unsqueeze(0)
+        image_tensor = torch.from_numpy(image).permute(2, 0, 1).float() / 255.0
+        image_tensor = image_tensor.unsqueeze(0)
         masks = model.predict(image_tensor)
         mask =fill_holes_and_remove_small_masks(masks[0])
         visualize(image, mask, args.output_path)

@@ -4,7 +4,7 @@ from torch.utils.data import DataLoader, ConcatDataset
 import sys
 import os
 
-from cellsam_models.anchor_detr import build
+from cellsam_models.AnchorDETR.models import build_cellfinder
 from cellsam_models.train.dataset import MoNuSACDataset, TNBCDataset, NuInsSegDataset, collate_fn
 
 def get_args_parser():
@@ -62,7 +62,7 @@ def main(args):
     device = torch.device(args.device)
 
     # 모델 build
-    model, criterion, postprocessors = build(args)
+    model, criterion, postprocessors = build_cellfinder(args)
     model.to(device)
     criterion.to(device)
 

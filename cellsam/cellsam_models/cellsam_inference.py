@@ -191,7 +191,16 @@ class CellSAM(nn.Module):
 
             masks_thresholded = []
             for box in boxes:
-                input_box = box.unsqueeze(0).unsqueeze(0)
+                
+                cx, cy, w, h = box[0], box[1], box[2], box[3]
+                x1 = (cx - w / 2) * 1024
+                y1 = (cy - h / 2) * 1024
+                x2 = (cx + w / 2) * 1024
+                y2 = (cy + h / 2) * 1024
+                box_xyxy = torch.tensor([[x1, y1, x2, y2]], device=self.device)
+                
+                
+                input_box = box_xyxy.unsqueeze(0)
                 sparse_emb, dense_emb = self.sam.prompt_encoder(
                     points=None,
                     boxes=input_box,

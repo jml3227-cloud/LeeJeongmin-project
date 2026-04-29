@@ -125,6 +125,8 @@ class CellSAM(nn.Module):
         boxes_per_image = [r["boxes"] for r in results]
         scores_per_image = [r["scores"] for r in results]
 
+        print(f"bbox 개수 (threshold 전): {len(boxes_per_image[0])}") 
+
         filtered_boxes = []
         for boxes, scores in zip(boxes_per_image, scores_per_image):
             data = scores.detach().cpu().numpy()
@@ -138,6 +140,7 @@ class CellSAM(nn.Module):
                     pass
             
             filtered_boxes.append(boxes[data > threshold])
+            print(f"bbox 개수 (threshold 후): {len(filtered_boxes[-1])}")
         
         return filtered_boxes
     

@@ -18,8 +18,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from PIL import Image
 
-from .util import box_ops
-from .util.misc import NestedTensor, interpolate, nested_tensor_from_tensor_list
+from ..util import box_ops
+from ..util.misc import NestedTensor, interpolate, nested_tensor_from_tensor_list
 
 
 class DETRsegm(nn.Module):

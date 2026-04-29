@@ -15,7 +15,7 @@ import torch
 import torch.nn.functional as F
 from torch import nn, Tensor
 
-from .util.misc import inverse_sigmoid
+from ..util.misc import inverse_sigmoid
 
 
 from .row_column_decoupled_attention import MultiheadRCDA

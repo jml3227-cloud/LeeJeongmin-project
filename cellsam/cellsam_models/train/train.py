@@ -5,8 +5,8 @@ import sys
 import os
 
 from cellsam_models.AnchorDETR.models import build_cellfinder
-from cellsam_models.train.dataset import MoNuSACDataset, TNBCDataset, NuInsSegDataset, collate_fn
-
+from cellsam_models.train.dataset import MoNuSACDataset, TNBCDataset, NuInsSegDataset, DeepBacsDataset, collate_fn
+from cellsam_models.AnchorDETR.transform import RandomHorizontalFlip, RandomVerticalFlip, RandomRotate90, Compose
 def get_args_parser():
     parser = argparse.ArgumentParser('CellSAM Training')
     
@@ -66,18 +66,27 @@ def main(args):
     model.to(device)
     criterion.to(device)
 
+    train_transform = Compose([
+        RandomHorizontalFlip(p=0.5),
+        RandomVerticalFlip(p=0.5),
+        RandomRotate90(p=0.5)
+    ])
+
     # dataset, dataloader
-    monusac_train = MoNuSACDataset(os.path.join(args.data_dir, 'monusac'), split='train')
+    monusac_train = MoNuSACDataset(os.path.join(args.data_dir, 'monusac'), split='train', transform=train_transform)
     monusac_val = MoNuSACDataset(os.path.join(args.data_dir, 'monusac'), split='val')
 
-    tnbc_train = TNBCDataset(os.path.join(args.data_dir, 'tnbc'), split='train')
+    tnbc_train = TNBCDataset(os.path.join(args.data_dir, 'tnbc'), split='train', transform=train_transform)
     tnbc_val = TNBCDataset(os.path.join(args.data_dir, 'tnbc'), split='val')
 
-    nuinsseg_train = NuInsSegDataset(os.path.join(args.data_dir, 'nuinsseg'), split='train')
+    nuinsseg_train = NuInsSegDataset(os.path.join(args.data_dir, 'nuinsseg'), split='train', transform=train_transform)
     nuinsseg_val = NuInsSegDataset(os.path.join(args.data_dir, 'nuinsseg'), split='val')
 
-    train_dataset = ConcatDataset([monusac_train, tnbc_train, nuinsseg_train])
-    val_dataset = ConcatDataset([monusac_val, tnbc_val, nuinsseg_val])
+    deepbacs_train = DeepBacsDataset(os.path.join(args.data_dir, 'deepbacs'), split='train', transform=train_transform)
+    deepbacs_val = DeepBacsDataset(os.path.join(args.data_dir, 'deepbacs'), split='val')
+    
+    train_dataset = ConcatDataset([monusac_train, tnbc_train, nuinsseg_train, deepbacs_train])
+    val_dataset = ConcatDataset([monusac_val, tnbc_val, nuinsseg_val, deepbacs_val])
 
     train_dataloader = DataLoader(train_dataset, batch_size=args.batch_size,
                             shuffle=True, collate_fn=collate_fn, num_workers=4)

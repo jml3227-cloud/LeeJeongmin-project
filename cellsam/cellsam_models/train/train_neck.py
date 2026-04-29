@@ -10,7 +10,8 @@ from segment_anything import sam_model_registry
 from segment_anything.utils.transforms import ResizeLongestSide
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from cellsam_models.train.dataset import MoNuSACDataset, TNBCDataset, NuInsSegDataset, collate_fn
+from cellsam_models.train.dataset import MoNuSACDataset, TNBCDataset, NuInsSegDataset, DeepBacsDataset, collate_fn
+from cellsam_models.AnchorDETR.transform import RandomHorizontalFlip, RandomVerticalFlip, RandomRotate90, Compose
 
 def get_args_parser():
     parser = argparse.ArgumentParser()
@@ -20,6 +21,7 @@ def get_args_parser():
     parser.add_argument('--monusac_dir', type=str, default='/workspace/monusac')
     parser.add_argument('--tnbc_dir', type=str, default='/workspace/tnbc')
     parser.add_argument('--nuinsseg_dir', type=str, default='/workspace/nuinsseg')
+    parser.add_argument('--deepbacs_dir', type=str, default='/workspace/deepbacs')
     parser.add_argument('--epochs', type=int, default=10)
     parser.add_argument('--lr', type=float, default=1e-4)
     parser.add_argument('--weight_decay', type=float, default=1e-4)
@@ -235,7 +237,13 @@ def main():
     parser = get_args_parser()
     args = parser.parse_args()
     device = torch.device(args.device if torch.cuda.is_available() else 'cpu')
- 
+    
+    train_transform = Compose([
+        RandomHorizontalFlip(p=0.5),
+        RandomVerticalFlip(p=0.5),
+        RandomRotate90(p=0.5),
+    ])
+
     # 1. SAM 불러오기
     print("SAM 불러오는 중...")
     sam = sam_model_registry['vit_b'](checkpoint=args.sam_checkpoint)
@@ -253,20 +261,25 @@ def main():
     val_datasets = []
  
     if os.path.exists(args.monusac_dir):
-        train_datasets.append(MoNuSACDataset(args.monusac_dir, split='train'))
+        train_datasets.append(MoNuSACDataset(args.monusac_dir, split='train', transform=train_transform))
         val_datasets.append(MoNuSACDataset(args.monusac_dir, split='val'))
         print(f"MoNuSAC 로드됨")
  
     if args.tnbc_dir and os.path.exists(args.tnbc_dir):
-        train_datasets.append(TNBCDataset(args.tnbc_dir, split='train'))
+        train_datasets.append(TNBCDataset(args.tnbc_dir, split='train', transform=train_transform))
         val_datasets.append(TNBCDataset(args.tnbc_dir, split='val'))
         print(f"TNBC 로드됨")
  
     if args.nuinsseg_dir and os.path.exists(args.nuinsseg_dir):
-        train_datasets.append(NuInsSegDataset(args.nuinsseg_dir, split='train'))
+        train_datasets.append(NuInsSegDataset(args.nuinsseg_dir, split='train', transform=train_transform))
         val_datasets.append(NuInsSegDataset(args.nuinsseg_dir, split='val'))
         print(f"NuInsSeg 로드됨")
- 
+
+    if args.deepbacs_dir and os.path.exists(args.deepbacs_dir):
+        train_datasets.append(DeepBacsDataset(args.deepbacs_dir, split='train', transform=train_transform))
+        val_datasets.append(DeepBacsDataset(args.deepbacs_dir, split='val'))
+        print(f"DeepBacs 로드됨")
+    
     if len(train_datasets) == 0:
         raise ValueError("데이터셋 경로를 확인해줘")
  

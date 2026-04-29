@@ -130,14 +130,15 @@ class CellSAM(nn.Module):
         filtered_boxes = []
         for boxes, scores in zip(boxes_per_image, scores_per_image):
             data = scores.detach().cpu().numpy()
-            threshold = self.bbox_threshold
-            if len(data) > 1:
-                try:
-                    kmeans = KMeans(n_clusters=2, random_state=42).fit(data.reshape(-1,1))
-                    threshold_cluster = np.mean(kmeans.cluster_centers_)
-                    threshold = 0.66 * self.bbox_threshold + 0.33 * threshold_cluster
-                except:
-                    pass
+            threshold = 0.2
+            # threshold = self.bbox_threshold
+            # if len(data) > 1:
+            #     try:
+            #         kmeans = KMeans(n_clusters=2, random_state=42).fit(data.reshape(-1,1))
+            #         threshold_cluster = np.mean(kmeans.cluster_centers_)
+            #         threshold = 0.66 * self.bbox_threshold + 0.33 * threshold_cluster
+            #     except:
+            #         pass
             
             print(f"scores 최대: {data.max():.4f}, 최소: {data.min():.4f}, 평균: {data.mean():.4f}")
             print(f"threshold: {threshold}")

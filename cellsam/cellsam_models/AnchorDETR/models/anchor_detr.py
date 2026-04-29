@@ -305,7 +305,7 @@ class PostProcess(nn.Module):
         return results
 
 
-def build(args):
+def build_cellfinder(args):
     num_classes = 1
 
     device = torch.device(args.device)

@@ -1,0 +1,17 @@
+[build-system]
+build-backend = 'setuptools.build_meta'
+requires = ['setuptools>=61.2']
+
+[project]
+name = 'cellsam'
+version = '0.1.0'
+requires-python = '>=3.10'
+
+[tool.setuptools]
+packages = [
+    'cellsam_models',
+    'cellsam_models.AnchorDETR',
+    'cellsam_models.AnchorDETR.models',
+    'cellsam_models.AnchorDETR.util',
+    'cellsam_models.train',
+]

@@ -140,10 +140,13 @@ class CellSAM(nn.Module):
             #     except:
             #         pass
             
+            
             print(f"scores 최대: {data.max():.4f}, 최소: {data.min():.4f}, 평균: {data.mean():.4f}")
             print(f"threshold: {threshold}")
             filtered_boxes.append(boxes[data > threshold])
             print(f"bbox 개수 (threshold 후): {len(filtered_boxes[-1])}")
+            if len(filtered_boxes[-1]) > 0:
+                print(f"box 예시: {filtered_boxes[-1][0]}")
         
         return filtered_boxes
     

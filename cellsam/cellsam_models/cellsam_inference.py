@@ -63,6 +63,7 @@ class CellFinder(nn.Module):
         args.set_cost_class = 2.0
         args.set_cost_bbox = 5.0
         args.set_cost_giou = 2.0
+        args.lr_backbone = 0
 
         self.model, _, self.postprocessors = build_cellfinder(args)
 

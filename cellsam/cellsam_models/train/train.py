@@ -154,6 +154,7 @@ def main(args):
                 loss_dict = criterion(outputs, targets)
                 losses = sum(loss_dict[k] * weight_dict[k]
                          for k in loss_dict.keys() if k in weight_dict)
+                print(f"loss: {losses.item():.4f}, boxes: {[len(t['boxes']) for t in targets]}")
                 val_loss += losses.item()
         
         val_loss /= len(val_dataloader)

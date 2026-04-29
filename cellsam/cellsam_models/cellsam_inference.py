@@ -64,7 +64,7 @@ class CellFinder(nn.Module):
         args.set_cost_bbox = 5.0
         args.set_cost_giou = 2.0
         args.lr_backbone = 0
-        args.sam_checkpoint = ''
+        args.sam_checkpoint = '/workspace/sam_vit_b_01ec64.pth'
 
         self.model, _, self.postprocessors = build_cellfinder(args)
 

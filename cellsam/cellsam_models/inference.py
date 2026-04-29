@@ -12,11 +12,11 @@ import os
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--checkpoint', default='/workspace/LeeJeongmin-project/cellsam/outputs/checkpoint_epoch10.pth', type=str)
+    parser.add_argument('--checkpoint', default='/workspace/LeeJeongmin-project/cellsam/outputs/checkpoint_best.pth', type=str)
     parser.add_argument('--mode', default='visualize', choices=['visualize', 'eval'])
     parser.add_argument('--image_path', type=str, required=True)
     parser.add_argument('--output_path', default='result.png', type=str)
-    parser.add_argument('--threshold', default=0.5, type=float)
+    parser.add_argument('--threshold', default=0.4, type=float)
     parser.add_argument('--device', default='cuda', type=str)
     parser.add_argument('--data_dir', default='/workspace', type=str)
 

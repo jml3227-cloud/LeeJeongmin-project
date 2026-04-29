@@ -19,7 +19,7 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 from segment_anything import sam_model_registry
-from .util.misc import NestedTensor, is_main_process
+from ..util.misc import NestedTensor, is_main_process
 
 
 class ModifiedImageEncoderViT(nn.Module):

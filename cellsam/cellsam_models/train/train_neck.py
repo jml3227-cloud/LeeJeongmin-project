@@ -34,19 +34,32 @@ def get_args_parser():
 
 def dice_loss(pred, target):
     pred = torch.sigmoid(pred)
-    pred = pred.view(pred.shape[0], -1)
-    target = target.view(target.shape[0], -1).float()
+    pred = pred.reshape(pred.shape[0], -1)
+    target = target.reshape(target.shape[0], -1).float()
 
     intersection = (pred * target).sum(dim=1)
     dice = (2 * intersection + 1) / (pred.sum(dim=1) + target.sum(dim=1) + 1)
     return 1 - dice.mean()
 
 def compute_loss(pred_masks, pred_ious, gt_masks):
-    best_idx = pred_ious.argmax(dim=1)
-    pred_best = pred_masks[torch.arange(len(pred_masks)), best_idx].unsqueeze(1)
+    pred_sigmoid = torch.sigmoid(pred_masks)  # [N, 3, H, W]
+    gt = gt_masks.float()  # [N, 1, H, W]
     
-    bce = F.binary_cross_entropy_with_logits(pred_best, gt_masks.float())
-    dice = dice_loss(pred_best, gt_masks)
+    best_masks = []
+    for i in range(len(pred_sigmoid)):
+        ious = []
+        for j in range(3):  # 3개 마스크 중
+            p = (pred_sigmoid[i, j] > 0.5).float()
+            intersection = (p * gt[i, 0]).sum()
+            union = (p + gt[i, 0]).clamp(0, 1).sum()
+            iou = intersection / (union + 1e-6)
+            ious.append(iou)
+        best_idx = torch.stack(ious).argmax()
+        best_masks.append(pred_masks[i, best_idx])
+    
+    pred_best = torch.stack(best_masks).unsqueeze(1)  # [N, 1, H, W]
+    bce = F.binary_cross_entropy_with_logits(pred_best, gt)
+    dice = dice_loss(pred_best, gt)
     return bce + dice
 
 def load_vit_weights_from_cellfinder(sam, cellfinder_ckpt_path, device):

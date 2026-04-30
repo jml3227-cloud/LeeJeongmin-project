@@ -9,7 +9,7 @@ from PIL import Image
 
 from cellsam_models.cellsam_inference import CellSAM
 from cellsam_models.utils import normalize_image, fill_holes_and_remove_small_masks
-from cellsam_models.train.dataset import MoNuSACDataset, TNBCDataset, NuInsSegDataset, collate_fn
+from cellsam_models.train.dataset import MoNuSACDataset, TNBCDataset, NuInsSegDataset, DeepBacsDataset, DSB2018Dataset, collate_fn
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -49,7 +49,9 @@ def evaluate(model, data_dir, device):
     monusac_test = MoNuSACDataset(os.path.join(data_dir, 'monusac'), split='test')
     tnbc_test = TNBCDataset(os.path.join(data_dir, 'tnbc'), split='test')
     nuinsseg_test = NuInsSegDataset(os.path.join(data_dir, 'nuinsseg'), split='test')
-    test_dataset = ConcatDataset([monusac_test, tnbc_test, nuinsseg_test])
+    deepbacs_test = DeepBacsDataset(os.path.join(data_dir, 'deepbacs'), split='test')
+    dsb2018_test = DSB2018Dataset(os.path.join(data_dir, 'dsb2018'), split='test')
+    test_dataset = ConcatDataset([monusac_test, tnbc_test, nuinsseg_test, deepbacs_test, dsb2018_test])
     test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False, collate_fn=collate_fn)
 
     all_f1 = []

@@ -48,7 +48,7 @@ class MoNuSACDataset(Dataset):
 
         boxes, masks = self.parse_xml(xml_path, H, W)
 
-        if len(boxes) > 450:
+        if len(boxes) > 400:
             return self.__getitem__((idx + 1) % len(self.samples))
     
         if len(boxes) == 0:
@@ -160,7 +160,7 @@ class TNBCDataset(Dataset):
         if len(boxes) == 0:
             return self.__getitem__((idx + 1) % len(self.samples))
             
-        if len(boxes) > 450:
+        if len(boxes) > 200:
             return self.__getitem__((idx + 1) % len(self.samples))
         
         image = torch.tensor(image).permute(2, 0, 1).float() / 255.0
@@ -337,7 +337,7 @@ class DeepBacsDataset(Dataset):
         if len(boxes) == 0:
             return self.__getitem__((idx + 1) % len(self.samples))
         
-        if len(boxes) > 450:
+        if len(boxes) > 150:
             return self.__getitem__((idx + 1) % len(self.samples))
         
         image = torch.tensor(image).permute(2, 0, 1).float() / 255.0
@@ -382,6 +382,95 @@ class DeepBacsDataset(Dataset):
             masks.append(mask)
 
         return boxes, masks
+    
+class DSB2018Dataset(Dataset):
+    def __init__(self, root_dir, split='train', transform=None):
+        self.samples = []
+        self.split = split
+        self.transform = transform
+
+        files = os.listdir(root_dir)
+        img_files = sorted([f for f in files if f.endswith('.tif') and not f.endswith('_mask.tif')])
+
+        for img_file in img_files:
+            mask_file = img_file.replace('.tif', '_mask.tif')
+
+            if mask_file in files:
+                self.samples.append((
+                    os.path.join(root_dir, img_file),
+                    os.path.join(root_dir, mask_file)
+                ))
+
+        train_samples, temp_samples = train_test_split(self.samples, test_size=0.2, random_state=42)
+        val_samples, test_samples = train_test_split(temp_samples, test_size=0.5, random_state=42)
+
+        if split == 'train':
+            self.samples = train_samples
+        elif split == 'val':
+            self.samples = val_samples
+        elif split == 'test':
+            self.samples = test_samples
+
+    def __len__(self):
+        return len(self.samples)
+    
+    def __getitem__(self, idx):
+        img_path, mask_path = self.samples[idx]
+
+        gray = np.array(Image.open(img_path).convert('L'))
+        image = np.zeros((gray.shape[0], gray.shape[1], 3), dtype=np.uint8)
+        image[:, :, 2] = gray
+
+        gt = np.array(Image.open(mask_path))
+        H, W = image.shape[:2]
+
+        boxes, masks = self.parse_mask(gt, H, W)
+
+        if len(boxes) == 0:
+            return self.__getitem__((idx + 1) % len(self.samples))
+        
+        if len(boxes) > 150:
+            return self.__getitem__((idx + 1) % len(self.samples))
+        
+        image = torch.tensor(image).permute(2, 0, 1).float() / 255.0
+        boxes = torch.tensor(boxes, dtype=torch.float32)
+        masks = torch.tensor(np.array(masks), dtype=torch.uint8)
+
+        image = resize(image, [1024, 1024])
+
+        x_min = boxes[:, 0] / W
+        y_min = boxes[:, 1] / H
+        x_max = boxes[:, 2] / W
+        y_max = boxes[:, 3] / H
+ 
+        cx = (x_min + x_max) / 2
+        cy = (y_min + y_max) / 2
+        w = x_max - x_min
+        h = y_max - y_min
+
+        boxes = torch.stack([cx, cy, w, h], dim=1)
+        masks = resize(masks, [1024, 1024], interpolation=InterpolationMode.NEAREST)
+
+        if self.transform is not None and self.split == 'train':
+            image, boxes, masks = self.transform(image, boxes, masks)
+
+        return image, boxes, masks
+    
+    def parse_mask(self, gt, H, W):
+        boxes = []
+        masks = []
+
+        for region in regionprops(gt):
+            if region.area < 10:
+                continue
+
+            y_min, x_min, y_max, x_max = region.bbox
+            boxes.append([x_min, y_min, x_max, y_max])
+            mask = (gt == region.label).astype(np.uint8)
+            masks.append(mask)
+
+        return boxes, masks
+
 
 
 def collate_fn(batch):

@@ -10,7 +10,7 @@ from segment_anything import sam_model_registry
 from segment_anything.utils.transforms import ResizeLongestSide
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from cellsam_models.train.dataset import MoNuSACDataset, TNBCDataset, NuInsSegDataset, DeepBacsDataset, collate_fn
+from cellsam_models.train.dataset import MoNuSACDataset, TNBCDataset, NuInsSegDataset, DeepBacsDataset, DSB2018Dataset, collate_fn
 from cellsam_models.AnchorDETR.transform import RandomHorizontalFlip, RandomVerticalFlip, RandomRotate90, Compose
 
 def get_args_parser():
@@ -22,6 +22,7 @@ def get_args_parser():
     parser.add_argument('--tnbc_dir', type=str, default='/workspace/tnbc')
     parser.add_argument('--nuinsseg_dir', type=str, default='/workspace/nuinsseg')
     parser.add_argument('--deepbacs_dir', type=str, default='/workspace/deepbacs')
+    parser.add_argument('--dsb2018_dir', type=str, default='/workspace/dsb2018')
     parser.add_argument('--epochs', type=int, default=10)
     parser.add_argument('--lr', type=float, default=1e-4)
     parser.add_argument('--weight_decay', type=float, default=1e-4)
@@ -292,6 +293,11 @@ def main():
         train_datasets.append(DeepBacsDataset(args.deepbacs_dir, split='train', transform=train_transform))
         val_datasets.append(DeepBacsDataset(args.deepbacs_dir, split='val'))
         print(f"DeepBacs 로드됨")
+
+    if args.dsb2018_dir and os.path.exists(args.dsb2018_dir):
+        train_datasets.append(DSB2018Dataset(args.dsb2018_dir, split='train', transform=train_transform))
+        val_datasets.append(DSB2018Dataset(args.dsb2018_dir, split='val'))
+        print(f"DSB2018 로드됨")
     
     if len(train_datasets) == 0:
         raise ValueError("데이터셋 경로를 확인해줘")

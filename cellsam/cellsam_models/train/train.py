@@ -111,7 +111,7 @@ def main(args):
         model.load_state_dict(ckpt['model'])
         optimizer.load_state_dict(ckpt['optimizer'])
         start_epoch = ckpt['epoch']
-        best_val_loss = ckpt['val_loss']
+        best_val_loss = float('inf')
         print(f'resume: epoch {start_epoch}부터 시작')
 
     for epoch in range(start_epoch, args.epochs):

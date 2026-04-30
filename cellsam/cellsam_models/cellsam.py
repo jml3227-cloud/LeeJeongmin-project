@@ -32,12 +32,13 @@ def visualize(image, mask, output_path):
     fig, axes = plt.subplots(1, 2, figsize=(16, 8))
 
     axes[0].imshow(image)
-    axes[0].set_title('원본 이미지')
+    axes[0].set_title('Raw Image')
     axes[0].axis('off')
 
     axes[1].imshow(image)
-    axes[1].imshow(mask, alpha=0.5, cmap='jet')
-    axes[1].set_title(f'검출 세포 수: {mask.max()}')
+    masked = np.ma.masked_where(mask == 0, mask)
+    axes[1].imshow(masked, alpha=0.7, cmap='tab20')
+    axes[1].set_title(f'Detected Cells: {mask.max()}')
     axes[1].axis('off')
 
     plt.savefig(output_path)

@@ -326,8 +326,10 @@ class DeepBacsDataset(Dataset):
     def __getitem__(self, idx):
         img_path, gt_path = self.samples[idx]
 
-        image = np.array(Image.open(img_path).convert('RGB'))
-        gt = np.array(Image.open(gt_path))
+        gray = np.array(Image.open(img_path).convert('L'))
+        image = np.zeros((gray.shape[0], gray.shape[1], 3), dtype=np.uint8)
+        image[:, :, 2] = gray
+        gt = np.array(Image.open(gt_path).convert('L'))
         H, W = image.shape[:2]
 
         boxes, masks = self.parse_mask(gt, H, W)

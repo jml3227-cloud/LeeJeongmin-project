@@ -4,7 +4,7 @@ from PIL import Image
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from torchvision.transforms.functional import resize
-from cellsam_models.AnchorDETR.anchor_detr import build
+from cellsam_models.AnchorDETR.models.anchor_detr import build
 from cellsam_models.train.dataset import MoNuSACDataset, TNBCDataset, NuInsSegDataset, collate_fn
 from torch.utils.data import DataLoader, ConcatDataset
 import argparse

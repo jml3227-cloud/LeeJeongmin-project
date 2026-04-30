@@ -4,7 +4,7 @@ from PIL import Image
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from torchvision.transforms.functional import resize
-from cellsam_models.AnchorDETR.models.anchor_detr import build
+from cellsam_models.AnchorDETR.models.anchor_detr import build_cellfinder
 from cellsam_models.train.dataset import MoNuSACDataset, TNBCDataset, NuInsSegDataset, collate_fn
 from torch.utils.data import DataLoader, ConcatDataset
 import argparse
@@ -101,7 +101,7 @@ def main():
     args = get_args()
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    model, _, postprocessors = build(args)
+    model, _, postprocessors = build_cellfinder(args)
     checkpoint = torch.load(args.checkpoint, map_location=device)
     model.load_state_dict(checkpoint['model'])
     model.to(device)

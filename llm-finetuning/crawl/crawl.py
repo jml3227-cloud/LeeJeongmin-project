@@ -1,6 +1,8 @@
 from Bio import Entrez
+from xml.etree import ElementTree as ET
 import json
 import time
+import os
 
 Entrez.email = "jml3227@gmail.com"
 
@@ -24,6 +26,19 @@ def fetch_full_text(pmc_id):
     handle = Entrez.efetch(db="pmc", id=pmc_id, rettype="xml", retmode="xml")
     return handle.read()
 
+def extract_text_from_xml(xml_bytes):
+    try:
+        root = ET.fromstring(xml_bytes)
+        texts = []
+        for elem in root.iter():
+            if elem.text and elem.text.strip():
+                texts.append(elem.text.strip())
+        return " ".join(texts)
+    except Exception:
+        return ""
+
+os.makedirs("data", exist_ok=True)
+
 all_ids = set()
 results = []
 
@@ -36,11 +51,14 @@ for query, max_count in queries.items():
 
     for i, pmc_id in enumerate(new_ids):
         try:
-            text = fetch_full_text(pmc_id)
+            xml_bytes = fetch_full_text(pmc_id)
+            text = extract_text_from_xml(xml_bytes)
+            if not text:
+                continue
             results.append({
                 "pmc_id": pmc_id,
                 "query": query,
-                "text": text.decode("utf-8")
+                "text": text
             })
             if i % 100 == 0:
                 print(f"  {i}/{len(new_ids)} 완료")
@@ -49,7 +67,7 @@ for query, max_count in queries.items():
             print(f"  Error {pmc_id}: {e}")
             continue
 
-with open("pmc_raw.jsonl", "w") as f:
+with open("data/pmc_raw.jsonl", "w") as f:
     for item in results:
         f.write(json.dumps(item) + "\n")
 

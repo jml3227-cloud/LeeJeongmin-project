@@ -7,3 +7,4 @@ __pycache__/
 *.pyc
 llm_env/
 
+llm-finetuning/data/

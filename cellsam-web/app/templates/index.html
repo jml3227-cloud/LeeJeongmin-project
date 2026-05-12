@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}CellLens{% endblock %}
+
+{% block content %}
+
+<div id="heroCarousel" class="carousel slide hero-carousel fade-in-up mb-5" data-ride="carousel" data-interval="5000">
+
+  <ol class="carousel-indicators">
+    <li data-target="#heroCarousel" data-slide-to="0" class="active"></li>
+    <li data-target="#heroCarousel" data-slide-to="1"></li>
+    <li data-target="#heroCarousel" data-slide-to="2"></li>
+  </ol>
+
+  <div class="carousel-inner">
+
+    <div class="carousel-item active">
+      <div class="carousel-item-inner">
+        <div>
+          <h1>세포 이미지를<br>자동으로 분석합니다</h1>
+          <p>CellSAM 기반 instance segmentation으로<br>세포 경계를 정밀하게 검출하고 개수를 카운트합니다.</p>
+          <div class="d-flex justify-content-center">
+            <a href="{{ url_for('cellsam.index') }}" class="btn btn-primary btn-lg px-4">CellSAM 분석 시작</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="carousel-item">
+      <div class="carousel-item-inner">
+        <div>
+          <h1>AI와 대화하며<br>결과를 이해합니다</h1>
+          <p>파인튜닝된 LLM과 RAG를 통해<br>분석 결과에 대한 질문에 답변합니다.</p>
+          <div class="d-flex justify-content-center">
+            <a href="#" class="btn btn-primary btn-lg px-4">LLM Chat 시작</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="carousel-item">
+      <div class="carousel-item-inner">
+        <div>
+          <h1>분석 결과를<br>언어로 설명합니다</h1>
+          <p>VLM이 세포 이미지와 분석 결과를 바탕으로<br>자연어 설명을 자동 생성합니다.</p>
+          <div class="d-flex justify-content-center">
+            <a href="#" class="btn btn-outline-light btn-lg px-4">Coming Soon</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <a class="carousel-control-prev" href="#heroCarousel" role="button" data-slide="prev">
+    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+    <span class="sr-only">이전</span>
+  </a>
+  <a class="carousel-control-next" href="#heroCarousel" role="button" data-slide="next">
+    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+    <span class="sr-only">다음</span>
+  </a>
+
+</div>
+
+<!-- 기능 소개 -->
+<p class="section-label scroll-reveal mb-4">주요 기능</p>
+
+<!-- CellSAM 분석 -->
+<div class="row align-items-center mb-5 scroll-reveal">
+  <div class="col-md-6 mb-4">
+    <h3 class="font-weight-bold mb-3">CellSAM 분석</h3>
+    <p class="text-muted" style="line-height:1.8;">세포 이미지를 업로드하면 Anchor DETR과 SAM 기반의<br>CellSAM 모델이 instance segmentation을 수행합니다.<br>마스크 오버레이와 세포 개수를 즉시 확인할 수 있습니다.</p>
+    <a href="{{ url_for('cellsam.index') }}" class="btn btn-outline-secondary mt-3">분석 시작 →</a>
+  </div>
+  <div class="col-md-6 mb-4">
+    <div class="feature-img-placeholder">
+      이미지 준비 중
+    </div>
+  </div>
+</div>
+
+<!-- LLM Chat -->
+<div class="row align-items-center mb-5 scroll-reveal">
+  <div class="col-md-6 order-md-2 mb-4 pl-md-5">
+    <h3 class="font-weight-bold mb-3">LLM Chat</h3>
+    <p class="text-muted" style="line-height:1.8;">파인튜닝된 Llama 모델과 RAG를 결합하여<br>세포 분석 결과에 대한 질문에 근거 있는 답변을 제공합니다.</p>
+    <a href="#" class="btn btn-outline-secondary mt-3">준비 중</a>
+  </div>
+  <div class="col-md-6 order-md-1 mb-4">
+    <div class="feature-img-placeholder">
+      이미지 준비 중
+    </div>
+  </div>
+</div>
+
+<!-- VLM -->
+<div class="row align-items-center mb-5 scroll-reveal">
+  <div class="col-md-6 mb-4">
+    <h3 class="font-weight-bold mb-3">VLM Analysis <span class="badge badge-secondary" style="font-size:0.7rem; vertical-align:middle;">Coming Soon</span></h3>
+    <p class="text-muted" style="line-height:1.8;">VLM이 세포 이미지와 CellSAM 분석 결과를 함께 해석하여<br>자연어로 설명을 자동 생성합니다.</p>
+    <a href="#" class="btn btn-outline-secondary mt-3">준비 중</a>
+  </div>
+  <div class="col-md-6 mb-4">
+    <div class="feature-img-placeholder">
+      이미지 준비 중
+    </div>
+  </div>
+</div>
+
+{% endblock %}

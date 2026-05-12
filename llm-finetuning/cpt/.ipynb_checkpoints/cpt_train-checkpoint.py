@@ -70,5 +70,4 @@ trainer = Trainer(
 
 trainer.train()
 trainer.save_model(OUTPUT_DIR)
-tokenizer.save_pretrained(OUTPUT_DIR)
 print("CPT 완료")

@@ -95,4 +95,5 @@ trainer = Trainer(
 
 trainer.train()
 trainer.save_model(OUTPUT_DIR)
+tokenizer.save_pretrained(OUTPUT_DIR)
 print("SFT 완료")

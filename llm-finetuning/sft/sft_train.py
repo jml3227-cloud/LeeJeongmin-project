@@ -13,7 +13,7 @@ CPT_MODEL_PATH = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/cpt"
 DATA_PATH = "/workspace/LeeJeongmin-project/llm-finetuning/data/sft_domain.jsonl"
 OUTPUT_DIR = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/sft"
 LOG_DIR = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/logs"
-EPOCHS = 1
+EPOCHS = 3
 BATCH_SIZE = 4
 LR = 1e-5
 

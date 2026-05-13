@@ -54,7 +54,7 @@ domain_dataset = load_domain_data(DATA_PATH)
 
 # Alpaca
 alpaca_en = load_dataset("tatsu-lab/alpaca", split="train")
-alpaca_en = alpaca_en.filter(lambda x: len(x["output"]) > 0)
+alpaca_en = alpaca_en.filter(lambda x: 'http' not in x['output'] and len(x['output']) > 0)
 alpaca_en = alpaca_en.map(format_alpaca_en, remove_columns=alpaca_en.column_names)
 alpaca_en = alpaca_en.shuffle(seed=42).select(range(200))
 

@@ -9,8 +9,10 @@ from transformers import (
 from trl import DataCollatorForCompletionOnlyLM
 from datasets import Dataset, load_dataset, concatenate_datasets
 
-CPT_MODEL_PATH = "outputs/cpt"
-OUTPUT_DIR = "outputs/sft"
+CPT_MODEL_PATH = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/cpt"
+DATA_PATH = "/workspace/LeeJeongmin-project/llm-finetuning/data/sft_domain.jsonl"
+OUTPUT_DIR = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/sft"
+LOG_DIR = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/logs"
 EPOCHS = 3
 BATCH_SIZE = 4
 LR = 1e-5
@@ -49,7 +51,7 @@ def format_prompt(example):
     return result
 
 # 도메인 데이터
-domain_dataset = load_domain_data("data/sft_domain.jsonl")
+domain_dataset = load_domain_data(DATA_PATH)
 
 # Alpaca (2000개 샘플링)
 alpaca_en = load_dataset("tatsu-lab/alpaca", split="train")
@@ -81,10 +83,11 @@ args = TrainingArguments(
     logging_steps=10,
     bf16=True,
     report_to="tensorboard",
-    logging_dir="outputs/logs"
+    logging_dir=LOG_DIR
 )
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
+os.makedirs(LOG_DIR, exist_ok=True)
 
 trainer = Trainer(
     model=model,

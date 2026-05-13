@@ -53,17 +53,17 @@ def format_prompt(example):
 domain_dataset = load_domain_data(DATA_PATH)
 
 # Alpaca
-alpaca_en = load_dataset("tatsu-lab/alpaca", split="train")
-alpaca_en = alpaca_en.map(format_alpaca_en, remove_columns=alpaca_en.column_names)
-alpaca_en = alpaca_en.shuffle(seed=42).select(range(100))
+# alpaca_en = load_dataset("tatsu-lab/alpaca", split="train")
+# alpaca_en = alpaca_en.map(format_alpaca_en, remove_columns=alpaca_en.column_names)
+# alpaca_en = alpaca_en.shuffle(seed=42).select(range(100))
 
 # Alpaca-ko
 alpaca_ko = load_dataset("beomi/KoAlpaca-v1.1a", split="train")
 alpaca_ko = alpaca_ko.map(format_alpaca_ko, remove_columns=alpaca_ko.column_names)
-alpaca_ko = alpaca_ko.shuffle(seed=42).select(range(100))
+alpaca_ko = alpaca_ko.shuffle(seed=42).select(range(200))
 
 # concat
-dataset = concatenate_datasets([domain_dataset, alpaca_en, alpaca_ko])
+dataset = concatenate_datasets([domain_dataset, alpaca_ko])
 dataset = dataset.shuffle(seed=42)
 dataset = dataset.map(format_prompt, remove_columns=["instruction", "output"])
 

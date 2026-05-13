@@ -28,5 +28,11 @@ questions = questions_cpt if MODE == "cpt" else questions_sft
 for q in questions:
     print(f"\n질문: {q}")
     inputs = tokenizer(q, return_tensors="pt").to("cuda")
-    outputs = model.generate(**inputs, max_new_tokens=200)
+    outputs = model.generate(
+        **inputs, 
+        max_new_tokens=200,
+        repetition_penalty=1.3,
+        do_sample=True,
+        temperature=0.7,
+    )
     print(f"답변: {tokenizer.decode(outputs[0], skip_special_tokens=True)}")

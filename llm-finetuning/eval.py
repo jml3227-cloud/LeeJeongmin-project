@@ -2,11 +2,13 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
 import json
 from bert_score import score
+from rouge_score import rouge_scorer
 
 MODEL_PATH = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/sft"
 EVAL_PATH = "/workspace/LeeJeongmin-project/llm-finetuning/data/eval_domain.jsonl"
 
 tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
+tokenizer.pad_token = tokenizer.eos_token
 model = AutoModelForCausalLM.from_pretrained(MODEL_PATH, torch_dtype=torch.float16, device_map="auto")
 
 data = []
@@ -38,3 +40,19 @@ for item in data:
 
 P, R, F1 = score(predictions, references, lang="ko")
 print(f"\nBERTScore - Precision: {P.mean():.4f}, Recall: {R.mean():.4f}, F1: {F1.mean():.4f}")
+
+scorer = rouge_scorer.RougeScorer(['rouge1', 'rouge2', 'rougeL'], use_stemmer=True)
+
+rouge1_scores = []
+rouge2_scores = []
+rougeL_scores = []
+
+for pred, ref in zip(predictions, references):
+    scores = scorer.score(ref, pred)
+    rouge1_scores.append(scores['rouge1'].fmeasure)
+    rouge2_scores.append(scores['rouge2'].fmeasure)
+    rougeL_scores.append(scores['rougeL'].fmeasure)
+
+print(f"ROUGE-1: {sum(rouge1_scores)/len(rouge1_scores):.4f}")
+print(f"ROUGE-2: {sum(rouge2_scores)/len(rouge2_scores):.4f}")
+print(f"ROUGE-L: {sum(rougeL_scores)/len(rougeL_scores):.4f}")

@@ -12,7 +12,7 @@ from datasets import Dataset
 
 # 설정
 MODEL_NAME = "meta-llama/Llama-3.2-3B"
-DATA_PATH = "data/chunked.jsonl"
+DATA_PATH = "/workspace/LeeJeongmin-project/llm-finetuning/data/chunked.jsonl"
 OUTPUT_DIR = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/cpt"
 LOG_DIR = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/logs"
 EPOCHS = 1
@@ -53,7 +53,7 @@ args = TrainingArguments(
     num_train_epochs=EPOCHS,
     per_device_train_batch_size=BATCH_SIZE,
     learning_rate=LR,
-    save_strategy="epoch",
+    save_strategy="no",
     logging_steps=100,
     bf16=True,
     report_to="tensorboard",

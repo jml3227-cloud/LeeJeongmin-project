@@ -45,7 +45,7 @@ def format_prompt(example):
     result = tokenizer(
         text,
         truncation=True,
-        max_length=1024,
+        max_length=2048,
     )
     return result
 

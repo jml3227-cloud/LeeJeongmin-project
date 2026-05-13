@@ -67,9 +67,9 @@ dataset = concatenate_datasets([domain_dataset, alpaca_en, alpaca_ko])
 dataset = dataset.shuffle(seed=42)
 dataset = dataset.map(format_prompt, remove_columns=["instruction", "output"])
 
-response_template = "\n\n### 답변:\n"
+response_template_ids = tokenizer.encode("\n\n### 답변:\n", add_special_tokens=False)
 data_collator = DataCollatorForCompletionOnlyLM(
-    response_template=response_template,
+    response_template=response_template_ids,
     tokenizer=tokenizer,
 )
 

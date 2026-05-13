@@ -34,5 +34,6 @@ for q in questions:
         repetition_penalty=1.3,
         do_sample=True,
         temperature=0.7,
+        eos_token_id=tokenizer.eos_token_id,
     )
     print(f"답변: {tokenizer.decode(outputs[0], skip_special_tokens=True)}")

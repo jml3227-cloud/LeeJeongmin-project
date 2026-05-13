@@ -13,7 +13,8 @@ from datasets import Dataset
 # 설정
 MODEL_NAME = "meta-llama/Llama-3.2-3B"
 DATA_PATH = "data/chunked.jsonl"
-OUTPUT_DIR = "outputs/cpt"
+OUTPUT_DIR = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/cpt"
+LOG_DIR = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/logs"
 EPOCHS = 1
 BATCH_SIZE = 4
 LR = 2e-5
@@ -56,10 +57,11 @@ args = TrainingArguments(
     logging_steps=100,
     bf16=True,
     report_to="tensorboard",
-    logging_dir="outputs/logs"
+    logging_dir=LOG_DIR
 )
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
+os.makedirs(LOG_DIR, exist_ok=True)
 
 trainer = Trainer(
     model=model,

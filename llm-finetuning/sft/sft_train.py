@@ -13,7 +13,7 @@ CPT_MODEL_PATH = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/cpt"
 DATA_PATH = "/workspace/LeeJeongmin-project/llm-finetuning/data/sft_domain.jsonl"
 OUTPUT_DIR = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/sft"
 LOG_DIR = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/logs"
-EPOCHS = 3
+EPOCHS = 1
 BATCH_SIZE = 4
 LR = 1e-5
 
@@ -46,29 +46,28 @@ def format_prompt(example):
         text,
         truncation=True,
         max_length=1024,
-        padding="max_length"
     )
     return result
 
 # 도메인 데이터
 domain_dataset = load_domain_data(DATA_PATH)
 
-# Alpaca (2000개 샘플링)
+# Alpaca
 alpaca_en = load_dataset("tatsu-lab/alpaca", split="train")
 alpaca_en = alpaca_en.map(format_alpaca_en, remove_columns=alpaca_en.column_names)
-alpaca_en = alpaca_en.shuffle(seed=42).select(range(2000))
+alpaca_en = alpaca_en.shuffle(seed=42).select(range(100))
 
-# Alpaca-ko (2000개 샘플링)
+# Alpaca-ko
 alpaca_ko = load_dataset("beomi/KoAlpaca-v1.1a", split="train")
 alpaca_ko = alpaca_ko.map(format_alpaca_ko, remove_columns=alpaca_ko.column_names)
-alpaca_ko = alpaca_ko.shuffle(seed=42).select(range(2000))
+alpaca_ko = alpaca_ko.shuffle(seed=42).select(range(100))
 
 # concat
 dataset = concatenate_datasets([domain_dataset, alpaca_en, alpaca_ko])
 dataset = dataset.shuffle(seed=42)
 dataset = dataset.map(format_prompt, remove_columns=["instruction", "output"])
 
-response_template = "### 답변:"
+response_template = "\n\n### 답변:\n"
 data_collator = DataCollatorForCompletionOnlyLM(
     response_template=response_template,
     tokenizer=tokenizer,
@@ -79,7 +78,7 @@ args = TrainingArguments(
     num_train_epochs=EPOCHS,
     per_device_train_batch_size=BATCH_SIZE,
     learning_rate=LR,
-    save_strategy="epoch",
+    save_strategy="no",
     logging_steps=10,
     bf16=True,
     report_to="tensorboard",

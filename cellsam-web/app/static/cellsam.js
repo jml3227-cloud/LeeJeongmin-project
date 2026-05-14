@@ -113,7 +113,7 @@ $(document).ready(function () {
         $('#cellCount').text(res.cell_count);
         $('#resultSection').show();
         $('#analyzeBtn').prop('disabled', false);
-        $('#avgConfidence').text(res.avg_confidence);
+        $('#avgConfidence').text(res.avg_iou);
       },
       error: function () {
         $('#loadingSection').hide();

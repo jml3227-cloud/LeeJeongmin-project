@@ -130,7 +130,7 @@ class CellSAM(nn.Module):
         filtered_boxes = []
         for boxes, scores in zip(boxes_per_image, scores_per_image):
             data = scores.detach().cpu().numpy()
-            threshold = 0.2
+            threshold = 0.3
             # threshold = self.bbox_threshold
             # if len(data) > 1:
             #     try:

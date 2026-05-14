@@ -68,7 +68,7 @@ $(document).ready(function () {
     $('#analyzeBtn').prop('disabled', true);
     $('#imageInput').val('');
     imageUploaded = false;
-
+    $('#uploadError').hide();
   });
 
   // 파일 처리 (미리보기)
@@ -113,7 +113,7 @@ $(document).ready(function () {
         $('#cellCount').text(res.cell_count);
         $('#resultSection').show();
         $('#analyzeBtn').prop('disabled', false);
-        $('#avgConfidence').text(res.avg_iou);
+        $('#avgIoU').text(res.avg_iou);
       },
       error: function () {
         $('#loadingSection').hide();

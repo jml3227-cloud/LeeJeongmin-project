@@ -77,7 +77,7 @@ def predict_video():
     # MP4 만들기
     h, w = frames[0].shape[:2]
     output_path = '/tmp/result.mp4'
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    fourcc = cv2.VideoWriter_fourcc(*'avc1')
     writer = cv2.VideoWriter(output_path, fourcc, 10, (w, h))
     for frame in frames:
         writer.write(cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))

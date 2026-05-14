@@ -1,9 +1,12 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 import torch
 import numpy as np
 import base64
 from PIL import Image
 import io
+import cv2
+import os
+import colorsys
 from inference import CellSAM
 
 app = Flask(__name__)
@@ -35,13 +38,87 @@ def predict():
     cell_count = int(mask.max())
 
     # 마스크 시각화
-    mask_b64 = visualize_mask(img, mask)
+    frame = visualize_mask(img, mask)
+    mask_b64 = numpy_to_b64(frame)
 
     return jsonify({
         'mask_image': mask_b64,
         'cell_count': cell_count,
         'avg_iou': avg_iou
     })
+
+@app.route('/predict_video', methods=['POST'])
+def predict_video():
+    if 'images' not in request.files:
+        return jsonify({'error': '이미지가 없습니다'}), 400
+    
+    files = request.files.getlist('images')
+    files = sorted(files, key=lambda f: f.filename)
+
+    frames = []
+    prev_masks = None
+    prev_ids = None
+
+    for file in files:
+        img = Image.open(io.BytesIO(file.read())).convert('RGB')
+        img = np.array(img)
+        img_tensor = torch.from_numpy(img).permute(2, 0, 1).float() / 255.0
+
+        masks, _ = model.predict(img_tensor)
+        mask = masks[0]
+
+        # IoU 기반 세포 ID 매칭
+        mask, prev_masks, prev_ids = match_ids(mask, prev_masks, prev_ids)
+
+        frame = visualize_mask(img, mask)
+        
+        frames.append(frame)
+
+    # MP4 만들기
+    h, w = frames[0].shape[:2]
+    output_path = '/tmp/result.mp4'
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    writer = cv2.VideoWriter(output_path, fourcc, 10, (w, h))
+    for frame in frames:
+        writer.write(cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
+    writer.release()
+
+    return send_file(output_path, mimetype='video/mp4')
+
+def match_ids(mask, prev_masks, prev_ids):
+    if prev_masks is None:
+        n = mask.max()
+        prev_ids = list(range(1, n+1))
+        return mask, mask.copy(), prev_ids
+    
+    new_mask = np.zeros_like(mask)
+    used_ids = set()
+    next_id = max(prev_ids) + 1 if prev_ids else 1
+
+    for new_label in range(1, mask.max() + 1):
+        new_region = (mask == new_label)
+        best_iou = 0
+        best_prev = None
+
+        for i, prev_label in enumerate(range(1, prev_masks.max() + 1)):
+            prev_region = (prev_masks == prev_label)
+            intersection = np.logical_and(new_region, prev_region).sum()
+            union = np.logical_or(new_region, prev_region).sum()
+            if union == 0:
+                continue
+            iou = intersection / union
+            if iou > best_iou:
+                best_iou = iou
+                best_prev = prev_ids[i] if i < len(prev_ids) else None
+
+        if best_iou > 0.3 and best_prev is not None and best_prev not in used_ids:
+            new_mask[new_region] = best_prev
+            used_ids.add(best_prev)
+        else:
+            new_mask[new_region] = next_id
+            next_id += 1
+
+    return new_mask, mask.copy(), list(range(1, mask.max() + 1)) 
 
 def visualize_mask(img, mask):
     import colorsys
@@ -56,9 +133,13 @@ def visualize_mask(img, mask):
     colors = np.array(colors)
 
     for cell_id in range(1, n_cells + 1):
-        result[mask == cell_id] = colors[cell_id]
+        if cell_id < len(colors):
+            result[mask == cell_id] = colors[cell_id]
 
-    pil_image = Image.fromarray(result)
+    return result
+
+def numpy_to_b64(arr):
+    pil_image = Image.fromarray(arr)
     buffer = io.BytesIO()
     pil_image.save(buffer, format='PNG')
     return base64.b64encode(buffer.getvalue()).decode('utf-8')

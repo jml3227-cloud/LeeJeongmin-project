@@ -185,13 +185,16 @@ class CellSAM(nn.Module):
         boxes_per_image, scores_per_image_filtered = self.generate_bounding_boxes(images)
 
         all_masks = []
+        all_avg_iou = []
         for idx in range(len(images)):
             boxes = boxes_per_image[idx]
             if len(boxes) == 0:
                 all_masks.append(np.zeros(images[idx].shape[-2:], dtype=np.int32))
+                all_avg_iou.append(0.0)
                 continue
 
             masks_thresholded = []
+            iou_preds = []
             for box in boxes:
                 box_xyxy = box.unsqueeze(0).unsqueeze(0)
 
@@ -212,6 +215,8 @@ class CellSAM(nn.Module):
                     warnings.warn("Low IOU, ignoring mask.")
                     continue
 
+                iou_preds.append(float(iou_pred[0][0]))
+
                 low_res_masks = self.sam.postprocess_masks(
                     low_res_masks.cpu(),
                     input_size=torch.tensor([1024 - paddings[idx][0], 1024 - paddings[idx][1]]),
@@ -230,15 +235,11 @@ class CellSAM(nn.Module):
                 all_masks.append(instance_mask)
             else:
                 all_masks.append(np.zeros(images[idx].shape[-2:], dtype=np.int32))
-
-        avg_scores = []
-        for scores in scores_per_image_filtered:
-            if len(scores) > 0:
-                avg_scores.append(float(scores.mean()))
-            else:
-                avg_scores.append(0.0)
+            
+            avg_iou = round(float(np.mean(iou_preds)), 4) if iou_preds else 0.0
+            all_avg_iou.append(avg_iou)
         
-        return all_masks, avg_scores
+        return all_masks, all_avg_iou
 
 
 

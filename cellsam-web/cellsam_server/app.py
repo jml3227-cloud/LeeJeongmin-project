@@ -27,8 +27,8 @@ def predict():
     # (H, W, 3) -> (3, H, W)
     img_tensor = torch.from_numpy(img).permute(2, 0, 1).float() / 255.0
 
-    masks, avg_scores = model.predict(img_tensor)
-    avg_confidence = round(avg_scores[0], 4)
+    masks, avg_ious = model.predict(img_tensor)
+    avg_iou = avg_ious[0]
     mask = masks[0]
 
     # 세포 개수
@@ -40,7 +40,7 @@ def predict():
     return jsonify({
         'mask_image': mask_b64,
         'cell_count': cell_count,
-        'avg_confidence': avg_confidence
+        'avg_iou': avg_iou
     })
 
 def visualize_mask(img, mask):

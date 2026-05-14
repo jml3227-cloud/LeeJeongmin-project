@@ -116,7 +116,8 @@ def match_ids(mask, prev_masks, prev_ids):
             new_mask[new_region] = next_id
             next_id += 1
 
-    return new_mask, mask.copy(), list(range(1, mask.max() + 1)) 
+    new_ids = [int(new_mask[new_mask == i].max()) for i in np.unique(new_mask) if i != 0]
+    return new_mask, new_mask.copy(), new_ids
 
 def visualize_mask(img, mask):
     import colorsys

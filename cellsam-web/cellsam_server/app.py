@@ -4,9 +4,9 @@ import numpy as np
 import base64
 from PIL import Image
 import io
-import cv2
 import os
 import colorsys
+import imageio
 from inference import CellSAM
 
 app = Flask(__name__)
@@ -75,13 +75,11 @@ def predict_video():
         frames.append(frame)
 
     # MP4 만들기
-    h, w = frames[0].shape[:2]
     output_path = '/tmp/result.mp4'
-    fourcc = cv2.VideoWriter_fourcc(*'avc1')
-    writer = cv2.VideoWriter(output_path, fourcc, 10, (w, h))
+    writer = imageio.get_writer(output_path, fps=10)
     for frame in frames:
-        writer.write(cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
-    writer.release()
+        writer.append_data(frame)
+    writer.close()
 
     return send_file(output_path, mimetype='video/mp4')
 

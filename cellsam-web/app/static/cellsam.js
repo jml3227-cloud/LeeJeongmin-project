@@ -1,8 +1,13 @@
 $(document).ready(function () {
+  let imageUploaded = false;
 
   // 업로드 존 클릭 → 파일 선택
   $('#fileSelectBtn').on('click', function (e) {
     e.stopPropagation();
+    if (imageUploaded) {
+      $('#uploadError').show();
+      return;
+    }
     $('#imageInput').click();
   });
 
@@ -19,12 +24,15 @@ $(document).ready(function () {
   $('#uploadZone').on('drop', function (e) {
     e.preventDefault();
     $(this).removeClass('dragover');
+    if (imageUploaded) {
+      $('#uploadError').show();
+      return;
+    }
     const file = e.originalEvent.dataTransfer.files[0];
-
     const dt = new DataTransfer();
     dt.items.add(file);
     $('#imageInput')[0].files = dt.files;
-    
+
     handleFile(file);
   });
 
@@ -32,6 +40,35 @@ $(document).ready(function () {
   $('#imageInput').on('change', function () {
     const file = this.files[0];
     handleFile(file);
+  });
+
+  // 미리보기 hover -> x 버튼
+  $('#previewImg').on('mouseenter', function() {
+    $(this).css('outline', '2px solid rgba(0,0,0,0.6)');
+    $('#deleteImgBtn').show();
+  }).on('mouseleave', function() {
+    $(this).css('outline', 'none');
+    $('#deleteImgBtn').hide();
+  });
+
+  $('#deleteImgBtn').on('mouseenter', function() {
+    $('#previewImg').css('outline', '2px solid rgba(0,0,0,0.6)');
+    $(this).show();
+  }).on('mouseleave', function() {
+    $('#previewImg').css('outline', 'none');
+    $(this).hide();
+  });
+
+  // x 버튼 클릭 -> 초기화
+  $('#deleteImgBtn').on('click', function() {
+    $('#previewImg').attr('src', '');
+    $('#fileName').text('');
+    $('#previewArea').hide();
+    $('#uploadZone').show();
+    $('#analyzeBtn').prop('disabled', true);
+    $('#imageInput').val('');
+    imageUploaded = false;
+
   });
 
   // 파일 처리 (미리보기)
@@ -42,9 +79,12 @@ $(document).ready(function () {
     reader.onload = function (e) {
       $('#previewImg').attr('src', e.target.result);
       $('#fileName').text(file.name);
+      $('#uploadZone').hide();
       $('#previewArea').show();
       $('#analyzeBtn').prop('disabled', false);
     };
+    imageUploaded = true;
+
     reader.readAsDataURL(file);
   }
 
@@ -73,6 +113,7 @@ $(document).ready(function () {
         $('#cellCount').text(res.cell_count);
         $('#resultSection').show();
         $('#analyzeBtn').prop('disabled', false);
+        $('#avgConfidence').text(res.avg_confidence);
       },
       error: function () {
         $('#loadingSection').hide();

@@ -5,7 +5,7 @@ BASE_DIR = os.path.dirname(__file__)
 SECRET_KEY = 'dev'
 
 # Runpod 서버 URL
-CELLSAM_SERVER_URL = '' 
+CELLSAM_SERVER_URL = 'http://157.157.221.29:33340' 
 LLM_SERVER_URL = ''
 
 # 업로드 설정

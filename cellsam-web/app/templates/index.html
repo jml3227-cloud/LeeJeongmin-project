@@ -15,7 +15,7 @@
   <div class="carousel-inner">
 
     <div class="carousel-item active">
-      <div class="carousel-item-inner">
+      <div class="carousel-item-inner" style="background-image: url('{{ url_for('static', filename='lab.png') }}'); background-size: cover; background-position: center;">
         <div>
           <h1>세포 이미지를<br>자동으로 분석합니다</h1>
           <p>CellSAM 기반 instance segmentation으로<br>세포 경계를 정밀하게 검출하고 개수를 카운트합니다.</p>
@@ -27,10 +27,10 @@
     </div>
 
     <div class="carousel-item">
-      <div class="carousel-item-inner">
+      <div class="carousel-item-inner"style="background-image: url('{{ url_for('static', filename='llm.jpg') }}'); background-size: cover; background-position: center;">
         <div>
           <h1>AI와 대화하며<br>결과를 이해합니다</h1>
-          <p>파인튜닝된 LLM과 RAG를 통해<br>분석 결과에 대한 질문에 답변합니다.</p>
+          <p>파인튜닝된 LLM을 통해<br>분석 결과에 대한 질문에 답변합니다.</p>
           <div class="d-flex justify-content-center">
             <a href="#" class="btn btn-primary btn-lg px-4">LLM Chat 시작</a>
           </div>

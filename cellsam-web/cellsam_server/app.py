@@ -42,18 +42,24 @@ def predict():
     })
 
 def visualize_mask(img, mask):
-    overlay = img.copy()
-    np.random.seed(42)
-    colors = np.random.randint(0, 255, (mask.max() + 1, 3))
-    for cell_id in range(1, mask.max() + 1):
-        overlay[mask == cell_id] = colors[cell_id]
-    result = (img * 0.4 + overlay * 0.6).astype(np.uint8)
+    import colorsys
+    result = np.zeros_like(img)
+    n_cells = mask.max()
+    
+    colors = []
+    for i in range(n_cells + 1):
+        hue = (i * 0.618033988749895) % 1.0
+        r, g, b = colorsys.hsv_to_rgb(hue, 1.0, 1.0)
+        colors.append((int(r*255), int(g*255), int(b*255)))
+    colors = np.array(colors)
+
+    for cell_id in range(1, n_cells + 1):
+        result[mask == cell_id] = colors[cell_id]
 
     pil_image = Image.fromarray(result)
     buffer = io.BytesIO()
     pil_image.save(buffer, format='PNG')
-    mask_b64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
-    return mask_b64
+    return base64.b64encode(buffer.getvalue()).decode('utf-8')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001)

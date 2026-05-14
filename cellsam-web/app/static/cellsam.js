@@ -20,6 +20,11 @@ $(document).ready(function () {
     e.preventDefault();
     $(this).removeClass('dragover');
     const file = e.originalEvent.dataTransfer.files[0];
+
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    $('#imageInput')[0].files = dt.files;
+    
     handleFile(file);
   });
 

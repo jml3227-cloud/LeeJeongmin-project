@@ -128,6 +128,7 @@ class CellSAM(nn.Module):
         print(f"bbox 개수 (threshold 전): {len(boxes_per_image[0])}") 
 
         filtered_boxes = []
+        filtered_scores_list = []
         for boxes, scores in zip(boxes_per_image, scores_per_image):
             data = scores.detach().cpu().numpy()
             threshold = 0.3
@@ -144,11 +145,12 @@ class CellSAM(nn.Module):
             print(f"threshold: {threshold}")
             filtered_boxes.append(boxes[data > threshold])
             filtered_scores = data[data > threshold]
+            filtered_scores_list.append(filtered_scores)
             print(f"bbox 개수 (threshold 후): {len(filtered_boxes[-1])}")
             if len(filtered_boxes[-1]) > 0:
                 print(f"scores 최대: {filtered_scores.max():.4f}, 최소: {filtered_scores.min():.4f}, 평균: {filtered_scores.mean():.4f}")
         
-        return filtered_boxes
+        return filtered_boxes, filtered_scores_list
     
     @torch.no_grad()
     def generate_embeddings(self, images):
@@ -180,7 +182,7 @@ class CellSAM(nn.Module):
         images = images.to(self.device)
 
         embeddings, paddings = self.generate_embeddings(images)
-        boxes_per_image = self.generate_bounding_boxes(images)
+        boxes_per_image, scores_per_image_filtered = self.generate_bounding_boxes(images)
 
         all_masks = []
         for idx in range(len(images)):
@@ -228,8 +230,15 @@ class CellSAM(nn.Module):
                 all_masks.append(instance_mask)
             else:
                 all_masks.append(np.zeros(images[idx].shape[-2:], dtype=np.int32))
+
+        avg_scores = []
+        for scores in scores_per_image_filtered:
+            if len(scores) > 0:
+                avg_scores.append(float(scores.mean()))
+            else:
+                avg_scores.append(0.0)
         
-        return all_masks
+        return all_masks, avg_scores
 
 
 

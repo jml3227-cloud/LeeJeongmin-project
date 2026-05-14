@@ -86,8 +86,8 @@ def predict_video():
 def match_ids(mask, prev_masks, prev_ids):
     if prev_masks is None:
         n = mask.max()
-        prev_ids = list(range(1, n+1))
-        return mask, mask.copy(), prev_ids
+        ids = list(range(1, n+1))
+        return mask, mask.copy(), ids
     
     new_mask = np.zeros_like(mask)
     used_ids = set()
@@ -96,10 +96,10 @@ def match_ids(mask, prev_masks, prev_ids):
     for new_label in range(1, mask.max() + 1):
         new_region = (mask == new_label)
         best_iou = 0
-        best_prev = None
+        best_prev_id = None
 
-        for i, prev_label in enumerate(range(1, prev_masks.max() + 1)):
-            prev_region = (prev_masks == prev_label)
+        for prev_id in prev_ids:
+            prev_region = (prev_masks == prev_id)
             intersection = np.logical_and(new_region, prev_region).sum()
             union = np.logical_or(new_region, prev_region).sum()
             if union == 0:
@@ -107,16 +107,16 @@ def match_ids(mask, prev_masks, prev_ids):
             iou = intersection / union
             if iou > best_iou:
                 best_iou = iou
-                best_prev = prev_ids[i] if i < len(prev_ids) else None
+                best_prev_id = prev_id
 
-        if best_iou > 0.3 and best_prev is not None and best_prev not in used_ids:
-            new_mask[new_region] = best_prev
-            used_ids.add(best_prev)
+        if best_iou > 0.3 and best_prev_id is not None and best_prev_id not in used_ids:
+            new_mask[new_region] = best_prev_id
+            used_ids.add(best_prev_id)
         else:
             new_mask[new_region] = next_id
             next_id += 1
 
-    new_ids = [int(new_mask[new_mask == i].max()) for i in np.unique(new_mask) if i != 0]
+    new_ids = [int(i) for i in np.unique(new_mask) if i != 0]
     return new_mask, new_mask.copy(), new_ids
 
 def visualize_mask(img, mask):

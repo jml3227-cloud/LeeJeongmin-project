@@ -1,7 +1,6 @@
 $(document).ready(function () {
   let imageUploaded = false;
 
-  // 업로드 존 클릭 → 파일 선택
   $('#fileSelectBtn').on('click', function (e) {
     e.stopPropagation();
     if (imageUploaded) {
@@ -11,7 +10,6 @@ $(document).ready(function () {
     $('#imageInput').click();
   });
 
-  // 드래그앤드롭
   $('#uploadZone').on('dragover', function (e) {
     e.preventDefault();
     $(this).addClass('dragover');
@@ -28,21 +26,17 @@ $(document).ready(function () {
       $('#uploadError').show();
       return;
     }
-    const file = e.originalEvent.dataTransfer.files[0];
+    const files = e.originalEvent.dataTransfer.files;
     const dt = new DataTransfer();
-    dt.items.add(file);
+    for (let f of files) dt.items.add(f);
     $('#imageInput')[0].files = dt.files;
-
-    handleFile(file);
+    handleFiles(files);
   });
 
-  // 파일 선택
   $('#imageInput').on('change', function () {
-    const file = this.files[0];
-    handleFile(file);
+    handleFiles(this.files);
   });
 
-  // 미리보기 hover -> x 버튼
   $('#previewImg').on('mouseenter', function() {
     $(this).css('outline', '2px solid rgba(0,0,0,0.6)');
     $('#deleteImgBtn').show();
@@ -59,7 +53,6 @@ $(document).ready(function () {
     $(this).hide();
   });
 
-  // x 버튼 클릭 -> 초기화
   $('#deleteImgBtn').on('click', function() {
     $('#previewImg').attr('src', '');
     $('#fileName').text('');
@@ -69,58 +62,93 @@ $(document).ready(function () {
     $('#imageInput').val('');
     imageUploaded = false;
     $('#uploadError').hide();
+    $('#resultSection').hide();
+    $('#videoResultSection').hide();
   });
 
-  // 파일 처리 (미리보기)
-  function handleFile(file) {
-    if (!file) return;
+  function handleFiles(files) {
+    if (!files || files.length === 0) return;
 
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      $('#previewImg').attr('src', e.target.result);
-      $('#fileName').text(file.name);
-      $('#uploadZone').hide();
-      $('#previewArea').show();
-      $('#analyzeBtn').prop('disabled', false);
-    };
     imageUploaded = true;
+    $('#uploadZone').hide();
+    $('#analyzeBtn').prop('disabled', false);
 
-    reader.readAsDataURL(file);
+    if (files.length === 1) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const isTif = files[0].name.toLowerCase().endsWith('.tif') || files[0].name.toLowerCase().endsWith('.tiff');
+        if (!isTif) {
+          $('#previewImg').attr('src', e.target.result).show();
+        } else {
+          $('#previewImg').hide();
+        }
+        $('#fileName').text(files[0].name);
+        $('#previewArea').show();
+      };
+      reader.readAsDataURL(files[0]);
+    } else {
+      $('#previewImg').hide();
+      $('#fileName').text(`${files.length}개 파일 선택됨`);
+      $('#previewArea').show();
+    }
   }
 
-  // 분석 버튼
   $('#analyzeBtn').on('click', function () {
-    const file = $('#imageInput')[0].files[0];
-    if (!file) return;
+    const files = $('#imageInput')[0].files;
+    if (!files || files.length === 0) return;
 
     const formData = new FormData();
-    formData.append('image', file);
-
     $('#resultSection').hide();
+    $('#videoResultSection').hide();
     $('#loadingSection').show();
     $('#analyzeBtn').prop('disabled', true);
 
-    $.ajax({
-      url: '/cellsam/analyze',
-      method: 'POST',
-      data: formData,
-      processData: false,
-      contentType: false,
-      success: function (res) {
-        $('#loadingSection').hide();
-        $('#originalImg').attr('src', $('#previewImg').attr('src'));
-        $('#resultImg').attr('src', 'data:image/png;base64,' + res.mask_image);
-        $('#cellCount').text(res.cell_count);
-        $('#resultSection').show();
-        $('#analyzeBtn').prop('disabled', false);
-        $('#avgIoU').text(res.avg_iou);
-      },
-      error: function () {
-        $('#loadingSection').hide();
-        alert('분석 중 오류가 발생했습니다.');
-        $('#analyzeBtn').prop('disabled', false);
-      }
-    });
+    if (files.length === 1) {
+      formData.append('image', files[0]);
+      $.ajax({
+        url: '/cellsam/analyze',
+        method: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function (res) {
+          $('#loadingSection').hide();
+          $('#originalImg').attr('src', $('#previewImg').attr('src'));
+          $('#resultImg').attr('src', 'data:image/png;base64,' + res.mask_image);
+          $('#cellCount').text(res.cell_count);
+          $('#avgIoU').text(res.avg_iou);
+          $('#resultSection').show();
+          $('#analyzeBtn').prop('disabled', false);
+        },
+        error: function () {
+          $('#loadingSection').hide();
+          alert('분석 중 오류가 발생했습니다.');
+          $('#analyzeBtn').prop('disabled', false);
+        }
+      });
+    } else {
+      for (let f of files) formData.append('images', f);
+      $.ajax({
+        url: '/cellsam/analyze_video',
+        method: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        xhrFields: { responseType: 'blob' },
+        success: function (blob) {
+          $('#loadingSection').hide();
+          const url = URL.createObjectURL(blob);
+          $('#resultVideo').attr('src', url);
+          $('#videoResultSection').show();
+          $('#analyzeBtn').prop('disabled', false);
+        },
+        error: function () {
+          $('#loadingSection').hide();
+          alert('영상 분석 중 오류가 발생했습니다.');
+          $('#analyzeBtn').prop('disabled', false);
+        }
+      });
+    }
   });
 
 });

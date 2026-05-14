@@ -14,12 +14,12 @@
   <div class="card-body">
     <p class="section-label">이미지 업로드</p>
     <div class="upload-zone" id="uploadZone">
-      <input type="file" id="imageInput" accept="image/*" style="display:none;">
+      <input type="file" id="imageInput" accept="image/*" multiple style="display:none;">
       <p>이미지를 드래그하거나 클릭해서 업로드하세요</p>
-      <p class="small text-muted mt-2">지원 형식: PNG, JPG, TIF / 최대 16MB</p>
+      <p class="small text-muted mt-2">단일 이미지: segmentation / 여러 장: 영상 분석 | 지원 형식: PNG, JPG, TIF / 최대 16MB</p>
     </div>
     <div id="uploadError" style="display:none;" class="alert alert-warning mt-2">
-      이미지는 한 장만 업로드 가능합니다. X 버튼으로 삭제 후 다시 업로드하세요.
+      이미 업로드된 파일이 있습니다. X 버튼으로 삭제 후 다시 업로드하세요.
     </div>    
     <div id="previewArea" style="display:none;" class="mt-3 text-center">
       <div style="position:relative; display: inline-block;">
@@ -55,6 +55,15 @@
       <div class="alert alert-info mt-3 mb-0">
         감지된 세포 수: <strong id="cellCount">-</strong> 개 &nbsp;|&nbsp; Avg.IoU: <strong id="avgIoU">-</strong>
       </div>
+    </div>
+  </div>
+</div>
+
+<div id="videoResultSection" style="display:none;">
+  <div class="card shadow-sm mb-4 scroll-reveal">
+    <div class="card-body">
+      <p class="section-label">영상 분석 결과</p>
+      <video id="resultVideo" controls style="width:100%; border-radius:8px"></video>
     </div>
   </div>
 </div>

@@ -22,3 +22,19 @@ def analyze():
     )
 
     return jsonify(response.json())
+
+@bp.route('/analyze_video', methods=['POST'])
+def analyze_video():
+    if 'images' not in request.files:
+        return jsonify({'error': '이미지가 없습니다'}), 400
+    
+    images = request.files.getlist('images')
+    cellsam_url = current_app.config['CELLSAM_SERVER_URL']
+
+    files = [(image.filename, image.read(), image.content_type) for image in images]
+    response = requests.post(
+        f'{cellsam_url}/predict_video',
+        files=[('images', (name, data, ct)) for name, data, ct in files]
+    )
+
+    return response.content, response.status_code, {'Content-Type': 'video/mp4'}

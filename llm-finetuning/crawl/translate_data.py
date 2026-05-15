@@ -5,10 +5,10 @@ from google import genai
 
 client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
-with open('/home/jml3227/LeeJeongmin-project/llm-finetuning/data/pubmedqa_3000.jsonl', 'r') as f:
+with open('/home/userjml3227/LeeJeongmin-project/llm-finetuning/data/pubmedqa_3000.jsonl', 'r') as f:
     data = [json.loads(line) for line in f]
 
-data = data[0:500]  # 계정 1: 0~499
+data = data[1000:1400]  # 계정 1: 0~499
 
 prompt_template = """아래 영어 질문-답변 쌍을 한국어로 번역해주세요.
 규칙:
@@ -51,7 +51,7 @@ for i in range(0, len(data), batch_size):
             else:
                 print(f"  최대 재시도 초과, 건너뜀")
 
-with open('/home/jml3227/LeeJeongmin-project/llm-finetuning/data/pubmedqa_ko_1.jsonl', 'w') as f:
+with open('/home/userjml3227/LeeJeongmin-project/llm-finetuning/data/pubmedqa_ko_3.jsonl', 'w') as f:
     for item in results:
         f.write(json.dumps(item, ensure_ascii=False) + '\n')
 

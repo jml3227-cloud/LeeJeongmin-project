@@ -10,7 +10,7 @@ BASE_MODEL = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/qlora_merged
 PHASE2_OUTPUT = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/qlora_phase2"
 FINAL_OUTPUT = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/qlora_final"
 LOG_DIR = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/logs"
-DOMAIN_DATA_PATH = "/workspace/LeeJeongmin-project/llm-finetuning/data/pubmedqa_ko.jsonl"
+DOMAIN_DATA_PATH = "/workspace/LeeJeongmin-project/llm-finetuning/data/pubmedqa_ko_1400.jsonl"
 EPOCHS = 2
 BATCH_SIZE = 4
 LR = 1e-5
@@ -60,7 +60,7 @@ domain_dataset = domain_dataset.map(format_prompt, remove_columns=domain_dataset
 alpaca = load_dataset("tatsu-lab/alpaca", split="train")
 alpaca = alpaca.filter(lambda x: 'http' not in x['output'] and len(x['output']) > 0)
 alpaca = alpaca.map(format_alpaca, remove_columns=alpaca.column_names)
-alpaca = alpaca.shuffle(seed=99).select(range(200))
+alpaca = alpaca.shuffle(seed=99).select(range(600))
 
 dataset = concatenate_datasets([domain_dataset, alpaca]).shuffle(seed=42)
 

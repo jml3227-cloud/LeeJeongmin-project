@@ -21,6 +21,6 @@ def to_qa(example):
     }
 
 converted = filtered.map(to_qa, remove_columns=filtered.column_names)
-converted.to_json('/home/jml3227/LeeJeongmin-project/llm-finetuning/data/pubmedqa_filtered.jsonl')
+converted.to_json('/workspace/LeeJeongmin-project/llm-finetuning/data/pubmedqa_filtered.jsonl')
 
 print(f"{len(converted)}개")

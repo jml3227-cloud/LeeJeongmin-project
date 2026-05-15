@@ -7,8 +7,10 @@ MODE = "sft"  # "cpt" 또는 "sft"
 
 CPT_MODEL_PATH = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/cpt"
 SFT_MODEL_PATH = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/sft"
+QLORA_MODEL_PATH = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/qlora_merged"
 
-model_name = CPT_MODEL_PATH if MODE == "cpt" else SFT_MODEL_PATH
+
+model_name = CPT_MODEL_PATH if MODE == "cpt" else QLORA_MODEL_PATH
 
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.float16, device_map="auto")

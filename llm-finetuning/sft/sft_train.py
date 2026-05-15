@@ -10,7 +10,7 @@ from trl import DataCollatorForCompletionOnlyLM
 from datasets import Dataset, load_dataset, concatenate_datasets
 
 CPT_MODEL_PATH = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/cpt"
-DATA_PATH = "/workspace/LeeJeongmin-project/llm-finetuning/data/pubmedqa_filtered.jsonl"
+DATA_PATH = "/workspace/LeeJeongmin-project/llm-finetuning/data/pubmedqa_ko.jsonl"
 OUTPUT_DIR = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/sft"
 LOG_DIR = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/logs"
 EPOCHS = 3
@@ -57,11 +57,6 @@ alpaca_en = load_dataset("tatsu-lab/alpaca", split="train")
 alpaca_en = alpaca_en.filter(lambda x: 'http' not in x['output'] and len(x['output']) > 0)
 alpaca_en = alpaca_en.map(format_alpaca_en, remove_columns=alpaca_en.column_names)
 alpaca_en = alpaca_en.shuffle(seed=42).select(range(200))
-
-# Alpaca-ko
-# alpaca_ko = load_dataset("beomi/KoAlpaca-v1.1a", split="train")
-# alpaca_ko = alpaca_ko.map(format_alpaca_ko, remove_columns=alpaca_ko.column_names)
-# alpaca_ko = alpaca_ko.shuffle(seed=42).select(range(200))
 
 # concat
 dataset = concatenate_datasets([domain_dataset, alpaca_en])

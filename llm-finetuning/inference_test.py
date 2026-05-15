@@ -32,9 +32,10 @@ for q in questions:
     inputs = tokenizer(q, return_tensors="pt").to("cuda")
     outputs = model.generate(
         **inputs, 
-        max_new_tokens=500,
+        max_new_tokens=400,
         repetition_penalty=1.5,
         do_sample=True,
+        temperature=0.3,
         eos_token_id=tokenizer.eos_token_id,
     )
     print(f"답변: {tokenizer.decode(outputs[0], skip_special_tokens=True)}")

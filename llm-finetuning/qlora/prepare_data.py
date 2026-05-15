@@ -12,7 +12,7 @@ def filter_fn(example):
     return has_cell and has_any
 
 filtered = dataset.filter(filter_fn)
-filtered = filtered.shuffle(seed=42).select(range(500))
+filtered = filtered.shuffle(seed=42).select(range(3000))
 
 def to_qa(example):
     return {
@@ -21,6 +21,5 @@ def to_qa(example):
     }
 
 converted = filtered.map(to_qa, remove_columns=filtered.column_names)
-converted.to_json('/workspace/LeeJeongmin-project/llm-finetuning/data/pubmedqa_filtered.jsonl')
-
-print(f"{len(converted)}개")
+converted.to_json('/home/jml3227/LeeJeongmin-project/llm-finetuning/data/pubmedqa_3000.jsonl')
+print(f"저장 완료: {len(converted)}개")

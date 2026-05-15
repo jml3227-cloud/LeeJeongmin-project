@@ -38,7 +38,7 @@ for item in data:
     print(f"생성: {answer[:100]}...")
     print()
 
-P, R, F1 = score(predictions, references, lang="ko")
+P, R, F1 = score(predictions, references, lang="en")
 print(f"\nBERTScore - Precision: {P.mean():.4f}, Recall: {R.mean():.4f}, F1: {F1.mean():.4f}")
 
 scorer = rouge_scorer.RougeScorer(['rouge1', 'rouge2', 'rougeL'], use_stemmer=True)

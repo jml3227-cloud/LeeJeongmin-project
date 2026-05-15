@@ -4,7 +4,7 @@ import json
 from bert_score import score
 from rouge_score import rouge_scorer
 
-MODEL_PATH = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/sft"
+MODEL_PATH = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/qlora_final"
 EVAL_PATH = "/workspace/LeeJeongmin-project/llm-finetuning/data/eval_domain.jsonl"
 
 tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)

@@ -11,7 +11,7 @@ PHASE2_OUTPUT = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/qlora_pha
 FINAL_OUTPUT = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/qlora_final"
 LOG_DIR = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/logs"
 DOMAIN_DATA_PATH = "/workspace/LeeJeongmin-project/llm-finetuning/data/pubmedqa_ko.jsonl"
-EPOCHS = 3
+EPOCHS = 2
 BATCH_SIZE = 4
 LR = 5e-5
 

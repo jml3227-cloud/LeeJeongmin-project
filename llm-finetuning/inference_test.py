@@ -21,8 +21,8 @@ questions_cpt = [
 ]
 
 questions_sft = [
-    "### 질문:\n대한민국의 수도는 어디인가요?\n\n### 답변:",
-    "### 질문:\nH&E 염색에서 보라색은 무엇을 염색한 건가요?\n\n### 답변:"
+    "반드시 한국어로만 답변하세요.\n\n### 질문:\n대한민국의 수도는 어디인가요?\n\n### 답변:",
+    "반드시 한국어로만 답변하세요.\n\n### 질문:\nH&E 염색에서 보라색은 무엇을 염색한 건가요?\n\n### 답변:"
 ]
 
 questions = questions_cpt if MODE == "cpt" else questions_sft
@@ -34,7 +34,7 @@ for q in questions:
         **inputs, 
         max_new_tokens=500,
         repetition_penalty=1.5,
-        do_sample=False,
+        do_sample=True,
         eos_token_id=tokenizer.eos_token_id,
     )
     print(f"답변: {tokenizer.decode(outputs[0], skip_special_tokens=True)}")

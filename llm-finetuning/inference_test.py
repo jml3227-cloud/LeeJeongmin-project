@@ -21,8 +21,9 @@ questions_cpt = [
 ]
 
 questions_sft = [
-    "반드시 한국어로만 답변하세요.\n\n### 질문:\n대한민국의 수도는 어디인가요?\n\n### 답변:",
-    "반드시 한국어로만 답변하세요.\n\n### 질문:\nH&E 염색에서 보라색은 무엇을 염색한 건가요?\n\n### 답변:"
+    "### 질문:\n대한민국의 수도는 어디인가요?\n\n### 답변:",
+    "### 질문:\ntumor cell에서 apoptosis가 일어나는 메커니즘은 무엇인가요?\n\n### 답변:",
+    "### 질문:\ncancer cell의 morphology가 정상 세포와 다른 점은 무엇인가요?\n\n### 답변:"
 ]
 
 questions = questions_cpt if MODE == "cpt" else questions_sft

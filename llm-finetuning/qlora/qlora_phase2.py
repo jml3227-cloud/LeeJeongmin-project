@@ -9,7 +9,7 @@ from datasets import load_dataset, concatenate_datasets
 BASE_MODEL = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/qlora_merged"
 PHASE2_OUTPUT = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/qlora_phase2"
 FINAL_OUTPUT = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/qlora_final"
-LOG_DIR = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/logs"
+LOG_DIR = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/logs/qlora"
 DOMAIN_DATA_PATH = "/workspace/LeeJeongmin-project/llm-finetuning/data/pubmedqa_ko_1400.jsonl"
 EPOCHS = 2
 BATCH_SIZE = 4

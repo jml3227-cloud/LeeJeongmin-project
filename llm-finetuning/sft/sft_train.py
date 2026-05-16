@@ -12,7 +12,7 @@ from datasets import Dataset, load_dataset, concatenate_datasets
 CPT_MODEL_PATH = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/cpt"
 DATA_PATH = "/workspace/LeeJeongmin-project/llm-finetuning/data/pubmedqa_ko_1400.jsonl"
 OUTPUT_DIR = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/sft"
-LOG_DIR = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/logs"
+LOG_DIR = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/logs/sft"
 EPOCHS = 3
 BATCH_SIZE = 4
 LR = 1e-5
@@ -51,12 +51,13 @@ def format_prompt(example):
 
 # 도메인 데이터
 domain_dataset = load_domain_data(DATA_PATH)
+domain_dataset = domain_dataset.shuffle(seed=42).select(range(500))
 
 # Alpaca
 alpaca_en = load_dataset("tatsu-lab/alpaca", split="train")
 alpaca_en = alpaca_en.filter(lambda x: 'http' not in x['output'] and len(x['output']) > 0)
 alpaca_en = alpaca_en.map(format_alpaca_en, remove_columns=alpaca_en.column_names)
-alpaca_en = alpaca_en.shuffle(seed=42).select(range(2000))
+alpaca_en = alpaca_en.shuffle(seed=42).select(range(200))
 
 # concat
 dataset = concatenate_datasets([domain_dataset, alpaca_en])

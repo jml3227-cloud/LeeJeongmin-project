@@ -2,37 +2,28 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
 
 # ===== 모드 설정 =====
-MODE = "sft"  # "cpt" 또는 "sft"
+MODE = "sft"  # "sft" 또는 "qlora"
 # ====================
 
-CPT_MODEL_PATH = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/cpt"
 SFT_MODEL_PATH = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/sft"
 QLORA_MODEL_PATH = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/qlora_final"
 
+model_path = SFT_MODEL_PATH if MODE == "sft" else QLORA_MODEL_PATH
 
-model_name = CPT_MODEL_PATH if MODE == "cpt" else QLORA_MODEL_PATH
+tokenizer = AutoTokenizer.from_pretrained(model_path)
+model = AutoModelForCausalLM.from_pretrained(model_path, torch_dtype=torch.float16, device_map="auto")
 
-tokenizer = AutoTokenizer.from_pretrained(model_name)
-model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.float16, device_map="auto")
-
-questions_cpt = [
-    "대한민국의 수도는 어디인가요?",
-    "H&E 염색에서 보라색은 무엇을 염색한 건가요?"
-]
-
-questions_sft = [
+questions = [
     "### 질문:\n대한민국의 수도는 어디인가요?\n\n### 답변:",
     "### 질문:\ntumor cell에서 apoptosis가 일어나는 메커니즘은 무엇인가요?\n\n### 답변:",
     "### 질문:\ncancer cell의 morphology가 정상 세포와 다른 점은 무엇인가요?\n\n### 답변:"
 ]
 
-questions = questions_cpt if MODE == "cpt" else questions_sft
-
 for q in questions:
     print(f"\n질문: {q}")
     inputs = tokenizer(q, return_tensors="pt").to("cuda")
     outputs = model.generate(
-        **inputs, 
+        **inputs,
         max_new_tokens=400,
         repetition_penalty=1.5,
         do_sample=True,

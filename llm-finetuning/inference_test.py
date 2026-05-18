@@ -32,7 +32,6 @@ for q in questions:
         temperature=0.1,
         eos_token_id=tokenizer.eos_token_id,
         pad_token_id=tokenizer.eos_token_id,
-        min_new_tokens=20,
     )
     full_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
     answer = full_text.split('### 답변:')[-1].strip()

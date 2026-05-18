@@ -1,5 +1,6 @@
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
+import re
 
 # ===== 모드 설정 =====
 MODE = "qlora"  # "sft" 또는 "qlora"
@@ -15,8 +16,8 @@ model = AutoModelForCausalLM.from_pretrained(model_path, torch_dtype=torch.float
 
 questions = [
     "### 질문:\n대한민국의 수도는 어디인가요?\n\n### 답변:",
-    "### 질문:\ntumor cell에서 apoptosis가 일어나는 메커니즘은 무엇인가요?\n\n### 답변:",
-    "### 질문:\ncancer cell의 morphology가 정상 세포와 다른 점은 무엇인가요?\n\n### 답변:"
+    "### 질문:\ncold tumor를 hot tumor로 전환하는 방법은 무엇인가요?\n\n### 답변:",
+    "### 질문:\ntumor microenvironment에서 면역 억제가 일어나는 메커니즘은 무엇인가요?\n\n### 답변:"
 ]
 
 for q in questions:
@@ -30,4 +31,7 @@ for q in questions:
         temperature=0.1,
         eos_token_id=tokenizer.eos_token_id,
     )
-    print(f"답변: {tokenizer.decode(outputs[0], skip_special_tokens=True)}")
+    full_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
+    answer = full_text.split('###답변:')[-1].strip()
+    answer = re.split(r'\n[A-Za-z]', answer)[0].strip()
+    print(f"답변: {answer}")

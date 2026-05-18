@@ -1,6 +1,7 @@
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
 import json
+import re
 from bert_score import score
 from rouge_score import rouge_scorer
 
@@ -32,6 +33,10 @@ for item in data:
     )
     generated = tokenizer.decode(outputs[0], skip_special_tokens=True)
     answer = generated.split("### 답변:")[-1].strip()
+    sentences = re.split(r'(?<=[다요])\s', answer)
+    answer = ' '.join(sentences[:2]).strip()
+    answer = re.split(r'\n[A-Za-z]', answer)[0].strip()
+    answer = re.split(r'\s{2,}[A-Z][a-z]', answer)[0].strip()
     predictions.append(answer)
     references.append(item["output"])
     print(f"질문: {item['instruction'][:50]}...")

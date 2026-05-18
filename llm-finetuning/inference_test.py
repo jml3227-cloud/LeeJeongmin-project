@@ -37,4 +37,5 @@ for q in questions:
     full_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
     answer = full_text.split('### 답변:')[-1].strip()
     answer = re.split(r'\n[A-Za-z]', answer)[0].strip()
+    answer = re.split(r'\s{2,}[A-Z][a-z]', answer)[0].strip()
     print(f"답변: {answer}")

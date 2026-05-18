@@ -12,6 +12,7 @@ QLORA_MODEL_PATH = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/qlora_
 model_path = SFT_MODEL_PATH if MODE == "sft" else QLORA_MODEL_PATH
 
 tokenizer = AutoTokenizer.from_pretrained(model_path)
+tokenizer.pad_token = tokenizer.eos_token
 model = AutoModelForCausalLM.from_pretrained(model_path, torch_dtype=torch.float16, device_map="auto")
 
 questions = [
@@ -25,7 +26,7 @@ for q in questions:
     inputs = tokenizer(q, return_tensors="pt").to("cuda")
     outputs = model.generate(
         **inputs,
-        max_new_tokens=300,
+        max_new_tokens=50,
         repetition_penalty=1.5,
         do_sample=True,
         temperature=0.1,

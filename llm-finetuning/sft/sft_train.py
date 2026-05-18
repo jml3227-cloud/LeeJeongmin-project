@@ -10,10 +10,10 @@ from trl import DataCollatorForCompletionOnlyLM
 from datasets import Dataset, load_dataset, concatenate_datasets
 
 CPT_MODEL_PATH = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/cpt"
-DATA_PATH = "/workspace/LeeJeongmin-project/llm-finetuning/data/pubmedqa_ko_1400.jsonl"
+DATA_PATH = "/workspace/LeeJeongmin-project/llm-finetuning/data/pubmedqa_ko_final.jsonl"
 OUTPUT_DIR = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/sft"
 LOG_DIR = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/logs/sft"
-EPOCHS = 3
+EPOCHS = 2
 BATCH_SIZE = 4
 LR = 1e-5
 

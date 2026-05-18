@@ -26,7 +26,7 @@ for q in questions:
     inputs = tokenizer(q, return_tensors="pt").to("cuda")
     outputs = model.generate(
         **inputs,
-        max_new_tokens=50,
+        max_new_tokens=200,
         repetition_penalty=1.5,
         do_sample=True,
         temperature=0.1,

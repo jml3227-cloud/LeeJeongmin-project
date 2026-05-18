@@ -11,7 +11,7 @@ with open('/home/jml3227/LeeJeongmin-project/llm-finetuning/data/pubmedqa_ko_140
 # 계정 1: data[:500]      → pubmedqa_ko_fixed_1.jsonl
 # 계정 2: data[500:1000]  → pubmedqa_ko_fixed_2.jsonl
 # 계정 3: data[1000:]     → pubmedqa_ko_fixed_3.jsonl
-data = data[975:]
+data = data[1425:1925]
 output_path = '/home/jml3227/LeeJeongmin-project/llm-finetuning/data/pubmedqa_ko_fixed_3.jsonl'
 
 prompt_template = """아래는 영어 질문과 한국어 답변 쌍입니다.

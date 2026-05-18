@@ -1,18 +1,22 @@
 import json
 import os
 import time
+import random
 from google import genai
 
 client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
-with open('/home/jml3227/LeeJeongmin-project/llm-finetuning/data/pubmedqa_ko_1400.jsonl', 'r') as f:
+with open('/home/userjml3227/LeeJeongmin-project/llm-finetuning/data/pubmedqa_3000.jsonl', 'r') as f:
     data = [json.loads(line) for line in f]
 
 # 계정 1: data[:500]      → pubmedqa_ko_fixed_1.jsonl
 # 계정 2: data[500:1000]  → pubmedqa_ko_fixed_2.jsonl
 # 계정 3: data[1000:]     → pubmedqa_ko_fixed_3.jsonl
-data = data[1425:1925]
-output_path = '/home/jml3227/LeeJeongmin-project/llm-finetuning/data/pubmedqa_ko_fixed_3.jsonl'
+random.seed(42)
+random.shuffle(data)
+
+data = data[1425:]
+output_path = '/home/userjml3227/LeeJeongmin-project/llm-finetuning/data/pubmedqa_ko_fixed_4.jsonl'
 
 prompt_template = """아래는 영어 질문과 한국어 답변 쌍입니다.
 instruction은 한국어로 번역하고, output은 핵심 내용만 1~2문장으로 요약해서 한국어로 작성해주세요.

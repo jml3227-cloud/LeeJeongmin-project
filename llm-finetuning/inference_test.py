@@ -17,8 +17,8 @@ model = AutoModelForCausalLM.from_pretrained(model_path, torch_dtype=torch.float
 
 questions = [
     "### 질문:\n대한민국의 수도는 어디인가요?\n\n### 답변:",
-    "### 질문:\ncold tumor를 hot tumor로 전환하는 방법은 무엇인가요?\n\n### 답변:",
-    "### 질문:\ntumor microenvironment에서 면역 억제가 일어나는 메커니즘은 무엇인가요?\n\n### 답변:"
+    "### 질문:\n미토콘드리아의 역할은 무엇인가요?\n\n### 답변:",
+    "### 질문:\nBcl-2 과발현이 종양 세포의 방사선 저항성과 관련이 있나요?\n\n### 답변:",
 ]
 
 for q in questions:

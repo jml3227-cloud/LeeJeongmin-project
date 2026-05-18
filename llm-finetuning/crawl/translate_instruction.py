@@ -5,20 +5,27 @@ from google import genai
 
 client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
-with open('/home/userjml3227/LeeJeongmin-project/llm-finetuning/data/pubmedqa_3000.jsonl', 'r') as f:
+with open('/home/jml3227/LeeJeongmin-project/llm-finetuning/data/pubmedqa_ko_1400.jsonl', 'r') as f:
     data = [json.loads(line) for line in f]
 
-data = data[1000:1400]  # 계정 1: 0~499
+# 계정 1: data[:500]      → pubmedqa_ko_fixed_1.jsonl
+# 계정 2: data[500:1000]  → pubmedqa_ko_fixed_2.jsonl
+# 계정 3: data[1000:]     → pubmedqa_ko_fixed_3.jsonl
+data = data[975:]
+output_path = '/home/jml3227/LeeJeongmin-project/llm-finetuning/data/pubmedqa_ko_fixed_3.jsonl'
 
-prompt_template = """아래 영어 질문-답변 쌍을 한국어로 번역해주세요.
+prompt_template = """아래는 영어 질문과 한국어 답변 쌍입니다.
+instruction은 한국어로 번역하고, output은 핵심 내용만 1~2문장으로 요약해서 한국어로 작성해주세요.
+
 규칙:
-- instruction(질문)과 output(답변) 모두 한국어로 번역
-- 모든 설명은 한국어로 작성
-- 번역 가능한 의학 용어는 한국어로 번역 (예: tumor → 종양, cell → 세포, apoptosis → 세포사멸, cancer → 암)
-- 단, 한국어 번역이 없는 고유 단백질명, 유전자명, 약물명은 영어 유지 (예: Bcl-2, caspase-3, mTOR, EGFR)
+- instruction과 output 모두 한국어로 작성
+- 번역 가능한 의학 용어는 한국어로 번역 (예: tumor → 종양, cell → 세포)
+- 고유 단백질명, 유전자명, 약물명은 영어 유지 (예: Bcl-2, EGFR, mTOR)
+- output은 반드시 1~2문장으로 요약
+- output은 친절한 대화체로 작성 (예: "~입니다", "~합니다" 형식. "~시사합니다", "~보증합니다" 같은 논문체 표현은 피할 것)
 - 문장은 반드시 한국어로 끝낼 것
-- JSON 형식 그대로 유지
-- 다른 설명 없이 JSON만 출력
+- JSON 배열 형식 그대로 유지
+- 다른 설명 없이 JSON 배열만 출력
 
 {batch}"""
 
@@ -52,7 +59,7 @@ for i in range(0, len(data), batch_size):
             else:
                 print(f"  최대 재시도 초과, 건너뜀")
 
-with open('/home/userjml3227/LeeJeongmin-project/llm-finetuning/data/pubmedqa_ko_3.jsonl', 'w') as f:
+with open(output_path, 'w') as f:
     for item in results:
         f.write(json.dumps(item, ensure_ascii=False) + '\n')
 

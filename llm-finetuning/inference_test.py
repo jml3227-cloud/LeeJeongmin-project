@@ -7,7 +7,7 @@ MODE = "qlora"  # "sft" 또는 "qlora"
 # ====================
 
 SFT_MODEL_PATH = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/sft"
-QLORA_MODEL_PATH = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/qlora_final"
+QLORA_MODEL_PATH = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/qlora_final_v2"
 
 model_path = SFT_MODEL_PATH if MODE == "sft" else QLORA_MODEL_PATH
 

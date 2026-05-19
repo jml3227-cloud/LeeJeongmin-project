@@ -9,7 +9,7 @@ from datasets import load_dataset
 BASE_MODEL="meta-llama/Llama-3.2-3B"
 PHASE1_OUTPUT = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/qlora_phase1"
 MERGED_OUTPUT = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/qlora_merged"
-LOG_DIR = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/logs"
+LOG_DIR = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/qlora_phase1"
 EPOCHS = 2
 BATCH_SIZE = 4
 LR = 2e-4
@@ -51,6 +51,7 @@ def format_alpaca(example):
 
 alpaca = load_dataset("tatsu-lab/alpaca", split="train")
 alpaca = alpaca.filter(lambda x: 'http' not in x['output'] and len(x['output']) > 0)
+alpaca = alpaca.filter(lambda x: len(x['output']) < 300)
 alpaca = alpaca.map(format_alpaca, remove_columns=alpaca.column_names)
 alpaca = alpaca.shuffle(seed=42).select(range(200))
 

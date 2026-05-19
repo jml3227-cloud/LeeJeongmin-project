@@ -61,7 +61,7 @@ alpaca = load_dataset("tatsu-lab/alpaca", split="train")
 alpaca = alpaca.filter(lambda x: 'http' not in x['output'] and len(x['output']) > 0)
 alpaca = alpaca.filter(lambda x: len(x['output']) < 300)
 alpaca = alpaca.map(format_alpaca, remove_columns=alpaca.column_names)
-alpaca = alpaca.shuffle(seed=99).select(range(1275))
+alpaca = alpaca.shuffle(seed=42).select(range(200, 1475))
 
 
 dataset = concatenate_datasets([domain_dataset, alpaca]).shuffle(seed=42)

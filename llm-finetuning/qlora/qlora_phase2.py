@@ -43,7 +43,7 @@ lora_config = LoraConfig(
 )
 
 def format_prompt(example):
-    text = f"### 질문:\n{example['instruction']}\n\n### 답변:\n{example['output']}"
+    text = f"### 질문:\n{example['instruction']}\n\n### 답변:\n{example['output']}{tokenizer.eos_token}"
     return {"text": text}
 
 def format_alpaca(example):
@@ -51,7 +51,7 @@ def format_alpaca(example):
     input_text = example.get("input", "")
     if input_text:
         instruction = f"{instruction}\n{input_text}"
-    text = f"### 질문:\n{instruction}\n\n### 답변:\n{example['output']}"
+    text = f"### 질문:\n{instruction}\n\n### 답변:\n{example['output']}{tokenizer.eos_token}"
     return {"text": text}
 
 domain_dataset = load_dataset("json", data_files=DOMAIN_DATA_PATH, split="train")

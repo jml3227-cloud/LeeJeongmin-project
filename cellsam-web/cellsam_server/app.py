@@ -8,6 +8,7 @@ import os
 import colorsys
 import imageio
 from inference import CellSAM
+from transformer import AutoTokenizer, AutoModelForCausalLM
 
 app = Flask(__name__)
 
@@ -17,6 +18,7 @@ model = CellSAM(
     cellfinder_checkpoint='/workspace/LeeJeongmin-project/cellsam/outputs/checkpoint_best.pth',
     neck_checkpoint='/workspace/LeeJeongmin-project/cellsam/outputs/neck_checkpoint_best.pth'
 )
+
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -76,7 +78,7 @@ def predict_video():
 
     # MP4 만들기
     output_path = '/tmp/result.mp4'
-    writer = imageio.get_writer(output_path, fps=10)
+    writer = imageio.get_writer(output_path, fps=4)
     for frame in frames:
         writer.append_data(frame)
     writer.close()
@@ -142,6 +144,30 @@ def numpy_to_b64(arr):
     buffer = io.BytesIO()
     pil_image.save(buffer, format='PNG')
     return base64.b64encode(buffer.getvalue()).decode('utf-8')
+
+@app.route('llm/generate', methods=['POST'])
+def llm_generate():
+    data = request.get_json()
+    if not data or 'question' in data:
+        return jsonify({'error': '질문이 없습니다'})
+    
+    question = data['question']
+    prompt = (f"### 질문:\n{question}\n\n###답변:")
+
+    inputs = llm_tokenizer(prompt, return_tensors='pt').to('cuda')
+    outputs = llm_model.generate(
+        **inputs,
+        max_new_tokens=300,
+        repetition_penalty=1.5,
+        do_sample=True,
+        temperature=0.1,
+        eos_token_id=llm_tokenizer.eos_token_id,
+    )
+
+    full_text = llm_tokenizer.decode(outputs[0], skip_special_tokens=True)
+    answer = full_text.split('### 답변:')[-1].strip()
+
+    return jsonify({'answer': answer})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001)

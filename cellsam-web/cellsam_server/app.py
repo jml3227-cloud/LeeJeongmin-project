@@ -7,8 +7,9 @@ import io
 import os
 import colorsys
 import imageio
+import re
 from inference import CellSAM
-from transformer import AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoTokenizer, AutoModelForCausalLM
 
 app = Flask(__name__)
 
@@ -18,6 +19,11 @@ model = CellSAM(
     cellfinder_checkpoint='/workspace/LeeJeongmin-project/cellsam/outputs/checkpoint_best.pth',
     neck_checkpoint='/workspace/LeeJeongmin-project/cellsam/outputs/neck_checkpoint_best.pth'
 )
+
+LLM_MODEL_PATH = '/workspace/LeeJeongmin-project/llm-finetuning/outputs/qlora_final'
+llm_tokenizer = AutoTokenizer.from_pretrained(LLM_MODEL_PATH)
+llm_tokenizer.pad_token = llm_tokenizer.eos_token
+llm_model = AutoModelForCausalLM.from_pretrained(LLM_MODEL_PATH, torch_dtype=torch.float16, device_map="auto")
 
 
 @app.route('/predict', methods=['POST'])
@@ -78,7 +84,7 @@ def predict_video():
 
     # MP4 만들기
     output_path = '/tmp/result.mp4'
-    writer = imageio.get_writer(output_path, fps=4)
+    writer = imageio.get_writer(output_path, format='mp4', fps=4)
     for frame in frames:
         writer.append_data(frame)
     writer.close()
@@ -145,14 +151,14 @@ def numpy_to_b64(arr):
     pil_image.save(buffer, format='PNG')
     return base64.b64encode(buffer.getvalue()).decode('utf-8')
 
-@app.route('llm/generate', methods=['POST'])
+@app.route('/llm/generate', methods=['POST'])
 def llm_generate():
     data = request.get_json()
-    if not data or 'question' in data:
+    if not data or 'question' not in data:
         return jsonify({'error': '질문이 없습니다'})
     
     question = data['question']
-    prompt = (f"### 질문:\n{question}\n\n###답변:")
+    prompt = f"간결하게 1~2문장으로 답하세요.\n\n### 질문:\n{question}\n\n### 답변:"
 
     inputs = llm_tokenizer(prompt, return_tensors='pt').to('cuda')
     outputs = llm_model.generate(
@@ -166,6 +172,10 @@ def llm_generate():
 
     full_text = llm_tokenizer.decode(outputs[0], skip_special_tokens=True)
     answer = full_text.split('### 답변:')[-1].strip()
+    sentences = re.split(r'(?<=[다요])\s', answer)
+    answer = ' '.join(sentences[:2]).strip()
+    answer = re.split(r'\n[A-Za-z]', answer)[0].strip()
+    answer = re.split(r'\s{2,}[A-Z][a-z]', answer)[0].strip()
 
     return jsonify({'answer': answer})
 

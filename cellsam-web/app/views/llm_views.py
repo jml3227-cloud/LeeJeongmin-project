@@ -1,11 +1,11 @@
 from flask import Blueprint, request, jsonify, render_template, current_app
 import requests
 
-bp = Blueprint('llm_views', __name__, url_prefix='/llm')
+bp = Blueprint('llm', __name__, url_prefix='/llm')
 
 @bp.route('/')
-def llm_page():
-    return render_template('llm.html')
+def index():
+    return render_template('llm.html', active_page='llm')
 
 @bp.route('/chat', methods=['POST'])
 def chat():

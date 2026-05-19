@@ -49,9 +49,7 @@ document.addEventListener('DOMContentLoaded', function () {
     div.className = `mb-3 ${align}`;
     div.innerHTML = `
       <p class="small text-muted mb-1">${label}</p>
-      <div style="display:inline-block; max-width:75%; padding:10px 14px; border-radius:12px; background:${bgColor}; color:${textColor}; text-align:left; white-space:pre-wrap;">
-        ${text}
-      </div>
+      <div style="display:inline-block; max-width:75%; padding:10px 14px; border-radius:12px; background:${bgColor}; color:${textColor}; text-align:left; white-space:pre-wrap; text-indent:0;">${text}</div>
     `;
 
     const chatHistory = document.getElementById('chatHistory');

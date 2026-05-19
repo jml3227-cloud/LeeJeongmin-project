@@ -7,7 +7,7 @@ MODE = "qlora"  # "sft" 또는 "qlora"
 # ====================
 
 SFT_MODEL_PATH = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/sft"
-QLORA_MODEL_PATH = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/qlora_final_v2"
+QLORA_MODEL_PATH = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/qlora_final"
 
 model_path = SFT_MODEL_PATH if MODE == "sft" else QLORA_MODEL_PATH
 
@@ -16,14 +16,15 @@ tokenizer.pad_token = tokenizer.eos_token
 model = AutoModelForCausalLM.from_pretrained(model_path, torch_dtype=torch.float16, device_map="auto")
 
 questions = [
-    "### 질문:\n대한민국의 수도는 어디인가요?\n\n### 답변:",
-    "### 질문:\n미토콘드리아의 역할은 무엇인가요?\n\n### 답변:",
-    "### 질문:\nBcl-2 과발현이 종양 세포의 방사선 저항성과 관련이 있나요?\n\n### 답변:",
+    "대한민국의 수도는 어디인가요?",
+    "미토콘드리아의 역할은 무엇인가요?",
+    "Bcl-2 과발현이 종양 세포의 방사선 저항성과 관련이 있나요?",
 ]
 
 for q in questions:
     print(f"\n질문: {q}")
-    inputs = tokenizer(q, return_tensors="pt").to("cuda")
+    q_with_prompt = f"간결하게 1~2문장으로 답하세요.\n\n### 질문:\n{q}\n\n### 답변:"
+    inputs = tokenizer(q_with_prompt, return_tensors="pt").to("cuda")
     outputs = model.generate(
         **inputs,
         max_new_tokens=200,

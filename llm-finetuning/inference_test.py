@@ -3,7 +3,7 @@ import torch
 import re
 
 # ===== 모드 설정 =====
-MODE = "sft"  # "sft" 또는 "qlora"
+MODE = "qlora"  # "sft" 또는 "qlora"
 # ====================
 
 SFT_MODEL_PATH = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/sft"

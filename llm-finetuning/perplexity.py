@@ -2,7 +2,7 @@ import torch
 import json
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
-MODEL_PATH = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/qlora"
+MODEL_PATH = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/qlora_final"
 EVAL_PATH = "/workspace/LeeJeongmin-project/llm-finetuning/data/pubmedqa_ko_eval.jsonl"
 
 tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)

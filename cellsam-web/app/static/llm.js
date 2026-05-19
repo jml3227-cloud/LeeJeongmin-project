@@ -1,12 +1,10 @@
-$(document).ready(function () {
+document.addEventListener('DOMContentLoaded', function () {
 
-  // 전송 버튼 클릭
-  $('#sendBtn').on('click', function () {
+  document.getElementById('sendBtn').addEventListener('click', function () {
     sendMessage();
   });
 
-  // 엔터키 전송 (shift+enter는 줄바꿈)
-  $('#userInput').on('keydown', function (e) {
+  document.getElementById('userInput').addEventListener('keydown', function (e) {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
@@ -14,29 +12,29 @@ $(document).ready(function () {
   });
 
   function sendMessage() {
-    const userText = $('#userInput').val().trim();
+    const userText = document.getElementById('userInput').value.trim();
     if (!userText) return;
 
     appendMessage('user', userText);
-    $('#userInput').val('');
-    $('#loadingSection').show();
-    $('#sendBtn').prop('disabled', true);
+    document.getElementById('userInput').value = '';
+    document.getElementById('loadingSection').style.display = 'block';
+    document.getElementById('sendBtn').disabled = true;
 
-    $.ajax({
-      url: '/llm/chat',
+    fetch('/llm/chat', {
       method: 'POST',
-      contentType: 'application/json',
-      data: JSON.stringify({ message: userText }),
-      success: function (res) {
-        appendMessage('assistant', res.reply);
-      },
-      error: function () {
-        appendMessage('assistant', '오류가 발생했습니다. 다시 시도해주세요.');
-      },
-      complete: function () {
-        $('#loadingSection').hide();
-        $('#sendBtn').prop('disabled', false);
-      }
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: userText })
+    })
+    .then(res => res.json())
+    .then(res => {
+      appendMessage('assistant', res.reply);
+    })
+    .catch(() => {
+      appendMessage('assistant', '오류가 발생했습니다. 다시 시도해주세요.');
+    })
+    .finally(() => {
+      document.getElementById('loadingSection').style.display = 'none';
+      document.getElementById('sendBtn').disabled = false;
     });
   }
 
@@ -47,22 +45,20 @@ $(document).ready(function () {
     const textColor = isUser ? 'white' : '#333';
     const label = isUser ? '나' : 'AI';
 
-    const html = `
-      <div class="mb-3 ${align}">
-        <p class="small text-muted mb-1">${label}</p>
-        <div style="display:inline-block; max-width:75%; padding:10px 14px; border-radius:12px; background:${bgColor}; color:${textColor}; text-align:left; white-space:pre-wrap;">
-          ${text}
-        </div>
+    const div = document.createElement('div');
+    div.className = `mb-3 ${align}`;
+    div.innerHTML = `
+      <p class="small text-muted mb-1">${label}</p>
+      <div style="display:inline-block; max-width:75%; padding:10px 14px; border-radius:12px; background:${bgColor}; color:${textColor}; text-align:left; white-space:pre-wrap;">
+        ${text}
       </div>
     `;
 
-    // 첫 메시지면 안내 문구 제거
-    if ($('#chatHistory .text-center').length) {
-      $('#chatHistory').empty();
-    }
+    const chatHistory = document.getElementById('chatHistory');
+    const placeholder = chatHistory.querySelector('.text-center');
+    if (placeholder) chatHistory.innerHTML = '';
 
-    $('#chatHistory').append(html);
-    $('#chatHistory').scrollTop($('#chatHistory')[0].scrollHeight);
+    chatHistory.appendChild(div);
+    chatHistory.scrollTop = chatHistory.scrollHeight;
   }
-
 });

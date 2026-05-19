@@ -1,22 +1,21 @@
-from flask import Blueprint, request, jsonify, render_template
+from flask import Blueprint, request, jsonify, render_template, current_app
 import requests
 
-bp = Blueprint('llm_views', __name__)
+bp = Blueprint('llm_views', __name__, url_prefix='/llm')
 
-LLM_SERVER_URL = "http://localhost:5001/generate"  # LLM 서버 주소 (나중에 변경)
-
-@bp.route('/llm')
+@bp.route('/')
 def llm_page():
     return render_template('llm.html')
 
-@bp.route('/llm/chat', methods=['POST'])
+@bp.route('/chat', methods=['POST'])
 def chat():
     data = request.get_json()
     user_message = data.get('message', '')
 
     try:
-        res = requests.post(LLM_SERVER_URL, json={'message': user_message}, timeout=60)
-        reply = res.json().get('reply', '응답을 받지 못했습니다.')
+        server_url = current_app.config['LLM_SERVER_URL']
+        res = requests.post(f'{server_url}/llm/generate', json={'question': user_message}, timeout=60)
+        reply = res.json().get('answer', '응답을 받지 못했습니다.')
     except Exception as e:
         reply = f'서버 연결 오류: {str(e)}'
 

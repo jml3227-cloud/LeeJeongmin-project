@@ -15,9 +15,9 @@ def analyze():
     image = request.files['image']
 
     # Runpod CellSAM 서버로 전달
-    cellsam_url = current_app.config['CELLSAM_SERVER_URL']
+    server_url = current_app.config['CELLSAM_SERVER_URL']
     response = requests.post(
-        f'{cellsam_url}/predict',
+        f'{server_url}/predict',
         files={'image': (image.filename, image.read(), image.content_type)}
     )
 
@@ -29,11 +29,11 @@ def analyze_video():
         return jsonify({'error': '이미지가 없습니다'}), 400
     
     images = request.files.getlist('images')
-    cellsam_url = current_app.config['CELLSAM_SERVER_URL']
+    server_url = current_app.config['CELLSAM_SERVER_URL']
 
     files = [(image.filename, image.read(), image.content_type) for image in images]
     response = requests.post(
-        f'{cellsam_url}/predict_video',
+        f'{server_url}/predict_video',
         files=[('images', (name, data, ct)) for name, data, ct in files]
     )
 

@@ -166,7 +166,7 @@ def llm_generate():
         **inputs,
         max_new_tokens=300,
         repetition_penalty=1.5,
-        do_sample=True,
+        do_sample=False,
         temperature=0.1,
         eos_token_id=llm_tokenizer.eos_token_id,
     )

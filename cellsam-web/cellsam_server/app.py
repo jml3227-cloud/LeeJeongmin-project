@@ -159,7 +159,16 @@ def llm_generate():
         return jsonify({'error': '질문이 없습니다'})
     
     question = data['question']
-    prompt = f"간결하게 1~2문장으로 답하세요.\n\n### 질문:\n{question}\n\n### 답변:"
+    history = data.get('history', [])
+
+    history_text = ''
+    for turn in history:
+        if turn['role'] == 'user':
+            history_text += f"### 질문:\n{turn['content']}\n\n"
+        elif turn['role'] == 'assistant':
+            history_text += f"### 답변:\n{turn['content']}\n\n"
+
+    prompt = f"간결하게 1~2문장으로 답하세요.\n\n{history_text}### 질문:\n{question}\n\n### 답변:"
 
     inputs = llm_tokenizer(prompt, return_tensors='pt').to('cuda')
     outputs = llm_model.generate(

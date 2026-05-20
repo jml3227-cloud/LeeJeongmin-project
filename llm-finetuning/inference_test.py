@@ -1,10 +1,12 @@
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
 import re
+import argparse
 
-# ===== 모드 설정 =====
-MODE = "qlora"  # "base", "sft", "qlora_phase1", "qlora"
-# ====================
+parser = argparse.ArgumentParser()
+parser.add_argument('--mode', type=str, default='qlora', choices=['base', 'sft', 'qlora_phase1', 'qlora'])
+args = parser.parse_args()
+MODE = args.mode
 
 BASE_MODEL_PATH = "meta-llama/Llama-3.2-3B"
 QLORA_PHASE1_PATH = "/workspace/LeeJeongmin-project/llm-finetuning/outputs/qlora_merged"
@@ -29,7 +31,11 @@ questions = [
 
 for q in questions:
     print(f"\n질문: {q}")
-    q_with_prompt = f"간결하게 1~2문장으로 답하세요.\n\n### 질문:\n{q}\n\n### 답변:"
+
+    if MODE == "base":
+        q_with_prompt = q
+    else:
+        q_with_prompt = f"간결하게 1~2문장으로 답하세요.\n\n### 질문:\n{q}\n\n### 답변:"
     inputs = tokenizer(q_with_prompt, return_tensors="pt").to("cuda")
     outputs = model.generate(
         **inputs,
@@ -41,11 +47,15 @@ for q in questions:
         pad_token_id=tokenizer.eos_token_id,
     )
     full_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
-    answer = full_text.split('### 답변:')[-1].strip()
-    sentences = re.split(r'(?<=[다요])\s', answer)
-    answer = ' '.join(sentences[:2]).strip()
-    answer = re.split(r'\n[A-Za-z]', answer)[0].strip()
-    answer = re.split(r'\s{2,}[A-Z][a-z]', answer)[0].strip()
-    answer = re.sub(r'\(https?://\S+\)', '', answer).strip()
-    answer = re.sub(r'https?://\S+', '', answer).strip()
+
+    if MODE == 'base':
+        answer = full_text.strip()
+    else: 
+        answer = full_text.split('### 답변:')[-1].strip()
+        sentences = re.split(r'(?<=[다요])\s', answer)
+        answer = ' '.join(sentences[:2]).strip()
+        answer = re.split(r'\n[A-Za-z]', answer)[0].strip()
+        answer = re.split(r'\s{2,}[A-Z][a-z]', answer)[0].strip()
+        answer = re.sub(r'\(https?://\S+\)', '', answer).strip()
+        answer = re.sub(r'https?://\S+', '', answer).strip()
     print(f"답변: {answer}")

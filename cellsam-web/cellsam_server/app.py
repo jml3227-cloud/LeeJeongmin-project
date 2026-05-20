@@ -12,6 +12,7 @@ from inference import CellSAM
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
 app = Flask(__name__)
+app.config['JSON_AS_ASCII'] = False
 
 # 모델 로드
 model = CellSAM(
@@ -176,6 +177,8 @@ def llm_generate():
     answer = ' '.join(sentences[:2]).strip()
     answer = re.split(r'\n[A-Za-z]', answer)[0].strip()
     answer = re.split(r'\s{2,}[A-Z][a-z]', answer)[0].strip()
+    answer = re.sub(r'\(https?://\S+\)', '', answer).strip()
+    answer = re.sub(r'https?://\S+', '', answer).strip()
 
     return jsonify({'answer': answer})
 

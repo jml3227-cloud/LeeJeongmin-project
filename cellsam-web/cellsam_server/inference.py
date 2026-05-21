@@ -112,10 +112,26 @@ class CellSAM(nn.Module):
         return x
     
     def preprocess_for_cellfinder(self, images):
-        imgs = [F.interpolate(img.unsqueeze(0), size=(1024,1024), mode='bilinear',
-                              align_corners=False).squeeze(0) for img in images]
-        imgs = torch.stack(imgs).to(self.device)
-        return imgs
+        processed = []
+        for img in images:
+            img_np = img.permute(1, 2, 0).cpu().numpy()
+            if img_np.max() <= 1.0:
+                img_np = (img_np * 255).astype(np.uint8)
+            else:
+                img_np = img_np.astype(np.uint8)
+
+            img_resized = self.sam_transform.apply_image(img_np)
+            img_tensor = torch.from_numpy(img_resized).permute(2, 0, 1).float()
+
+            # padding으로 1024 * 1024 맞추기
+            h, w = img_tensor.shape[-2:]
+            padh = 1024 - h
+            padw = 1024 - w
+            img_tensor = F.pad(img_tensor, (0, padw, 0, padh))
+            img_tensor = img_tensor / 255.0
+            processed.append(img_tensor)
+
+        return torch.stack(processed).to(self.device)
     
     @torch.no_grad()
     def generate_bounding_boxes(self, images):

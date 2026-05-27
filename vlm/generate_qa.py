@@ -102,7 +102,7 @@ def main():
     count = 0
 
     for category, entries in sampled.items():
-        for entry in entries[:3]:
+        for entry in entries:
             count += 1
             fname = entry["file_name"]
             desc = entry["patch_discription"]

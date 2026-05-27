@@ -98,6 +98,7 @@ def main():
     os.makedirs(os.path.dirname(OUTPUT_JSON), exist_ok=True)
 
     results = []
+    
     total = sum(len(v) for v in sampled.values())
     count = 0
 
@@ -105,6 +106,7 @@ def main():
         for entry in entries:
             count += 1
             fname = entry["file_name"]
+
             desc = entry["patch_discription"]
             cellsam_info = cellsam.get(fname, {})
 

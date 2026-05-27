@@ -4,6 +4,7 @@ import sys
 import numpy as np
 import torch
 from PIL import Image
+from cellsam_models.cellsam_inference import CellSAM
 
 # ----------------------------------------
 # 경로 설정 (RunPod 기준)
@@ -14,9 +15,6 @@ OUTPUT_JSON = "/workspace/LeeJeongmin-project/vlm/data/cellsam_results.json"
 SAM_CHECKPOINT = "/workspace/sam_vit_b_01ec64.pth"
 CELLFINDER_CHECKPOINT = "/workspace/LeeJeongmin-project/cellsam/outputs/checkpoint_best.pth"
 NECK_CHECKPOINT = "/workspace/LeeJeongmin-project/cellsam/outputs/neck_checkpoint_best.pth"
-
-sys.path.insert(0, "/workspace/LeeJeongmin-project/cellsam")
-
 
 def load_image(image_path):
     img = Image.open(image_path).convert("RGB")
@@ -52,7 +50,6 @@ def extract_quantification(mask):
 
 
 def main():
-    from cellsam_models.cellsam_inference import CellSAM
 
     model = CellSAM(
         sam_checkpoint=SAM_CHECKPOINT,

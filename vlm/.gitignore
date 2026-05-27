@@ -1,4 +1,5 @@
 vlm_env/
+outputs/
 data/
 __pycache__/
 *.pyc

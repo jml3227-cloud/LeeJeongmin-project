@@ -32,7 +32,7 @@ class LazySupervisedDataset(Dataset):
             elif isinstance(source["image"], str):
                 image_sources = [source["image"]]
             else:
-                raise ValueError(f"Invalid image source type: {type(source["image"])}")
+                raise ValueError(f"Invalid image source type: {type(source['image'])}")
             
             for image_path in image_sources:
                 if self.image_folder is not None:

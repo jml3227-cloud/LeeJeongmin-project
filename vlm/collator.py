@@ -4,7 +4,7 @@ from typing import Dict, List, Sequence, Union, Optional
 import PIL
 import torch
 from transformers.image_utils import get_image_size, to_numpy_array
-from transformers.models.llava_onevision.processing_llava_one_vision import LlavaOnevisionProcessorKwargs
+from transformers.models.llava_onevision.processing_llava_onevision import LlavaOnevisionProcessorKwargs
 from transformers.utils import logging
 from transformers import PreTrainedTokenizer, AutoProcessor, AutoConfig
 from abc import ABC, abstractmethod

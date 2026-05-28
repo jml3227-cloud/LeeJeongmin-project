@@ -12,7 +12,7 @@ class LazySupervisedDataset(Dataset):
         image_folder: Optional[str] = None,
         user_key: str = "human",
         assistant_key: str = "gpt",
-    )
+    ):
         super(LazySupervisedDataset, self).__init__()
         self.list_data_dict = json.load(open(data_path, "r"))
         self.image_folder = image_folder

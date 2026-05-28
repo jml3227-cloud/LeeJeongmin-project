@@ -24,8 +24,6 @@ model.eval()
 with open(EVAL_PATH, "r", encoding="utf-8") as f:
     data = json.load(f)
 
-data = data[:10]
-
 predictions = []
 references = []
 

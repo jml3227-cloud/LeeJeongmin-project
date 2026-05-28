@@ -84,21 +84,28 @@ def train():
 
     projector_keys = MODULE_KEYWORDS["vision_projector"]
     full_modules = list(projector_keys)
-    rank0_print(f"Vision projector will be fully trained:{full_modules}")
+    rank0_print(f"Vision projector will be fully trained: {full_modules}")
+
+    model = prepare_model_for_kbit_training(
+        model, use_gradient_checkpointing=training_args.gradient_checkpointing
+    )
+
+    for key in projector_keys:
+        for name, param in model.named_parameters():
+            if key in name:
+                param.data = param.data.to(torch.float32)
+                param.requires_grad_(True)
 
     lora_config = LoraConfig(
         r=qlora_args.lora_r,
         lora_alpha=qlora_args.lora_alpha,
         target_modules=lora_modules,
-        modules_to_save=full_modules,
+        modules_to_save=[],   
         lora_dropout=qlora_args.lora_dropout,
         bias=qlora_args.lora_bias,
         task_type="CAUSAL_LM",
     )
-
-    model = prepare_model_for_kbit_training(
-        model, use_gradient_checkpointing=training_args.gradient_checkpointing
-    )
+    
     model = get_peft_model(model, lora_config)
 
     # print trainable parameters

@@ -47,6 +47,7 @@ for item in data:
 
     prompt = processor.apply_chat_template(messages, add_generation_prompt=True)
     inputs = processor(images=image, text=prompt, return_tensors="pt").to("cuda")
+    inputs["pixel_values"] = inputs["pixel_values"].to(torch.float16)
 
     with torch.no_grad():
         outputs = model.generate(

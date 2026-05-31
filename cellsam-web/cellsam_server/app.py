@@ -9,7 +9,8 @@ import colorsys
 import imageio
 import re
 from inference import CellSAM
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoTokenizer, AutoModelForCausalLM, LlavaOnevisionForConditionalGeneration, AutoProcessor
+from peft import PeftModel
 
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
@@ -26,6 +27,16 @@ llm_tokenizer = AutoTokenizer.from_pretrained(LLM_MODEL_PATH)
 llm_tokenizer.pad_token = llm_tokenizer.eos_token
 llm_model = AutoModelForCausalLM.from_pretrained(LLM_MODEL_PATH, torch_dtype=torch.float16, device_map="auto")
 
+VLM_MODEL_PATH = '/workspace/llava-onevision-qwen2-7b-ov-hf'
+VLM_ADAPTER_PATH = '/workspace/LeeJeongmin-project/vlm/outputs/checkpoints'
+vlm_processor = AutoProcessor.from_pretrained(VLM_MODEL_PATH)
+vlm_model = LlavaOnevisionForConditionalGeneration.from_pretrained(
+    VLM_MODEL_PATH,
+    torch_dtype=torch.float16,
+    device_map="auto"
+)
+vlm_model = PeftModel.from_pretrained(vlm_model, VLM_ADAPTER_PATH)
+vlm_model.eval()
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -190,6 +201,114 @@ def llm_generate():
     answer = re.sub(r'https?://\S+', '', answer).strip()
 
     return jsonify({'answer': answer})
+
+@app.route('/vlm/analyze', methods=['POST'])
+def vlm_analyze():
+    if 'image' not in request.files:
+        return jsonify({'error': '이미지가 없습니다'}), 400
+    
+    file = request.files['image']
+    question = request.form.get('question', '이 조직 슬라이드 소견을 말해주세요.')
+
+    img_bytes = file.read()
+    img = Image.open(io.BytesIO(img_bytes)).convert('RGB')
+    img_np = np.array(img)
+
+    # cellsam으로 정량 데이터 추출
+    img_tensor = torch.from_numpy(img_np).permute(2, 0, 1).float() / 255.0
+    masks, _ = model.predict(img_tensor)
+    mask = masks[0]
+
+    cell_count = int(mask.max())
+    total_pixels = mask.shape[0] * mask.shape[1]
+    cell_pixels = int((mask > 0).sum())
+    density = round(cell_pixels / total_pixels, 4)
+
+    cell_areas = []
+    for cell_id in range(1, cell_count + 1):
+        area = int((mask == cell_id).sum())
+        if area > 0:
+            cell_areas.append(area)
+    std_area = round(float(np.std(cell_areas)), 1) if cell_areas else 0.0
+
+    user_text = (
+        f"[세포 분석 결과] 세포 수: {cell_count}개, "
+        f"밀도: {density:.4f}/px²\n"
+        f"{question}"
+    )
+
+    messages = [{
+        "role": "user",
+        "content": [
+            {"type": "image"},
+            {"type": "text", "text": user_text}
+        ]
+    }]
+
+    prompt = vlm_processor.apply_chat_template(messages, add_generation_prompt=True)
+    inputs = vlm_processor(images=img, text=prompt, return_tensors="pt").to("cuda")
+    inputs["pixel_values"] = inputs["pixel_values"].to(torch.float16)
+
+    with torch.no_grad():
+        outputs = vlm_model.generate(
+            **inputs,
+            max_new_tokens=512,
+            do_sample=False,
+            eos_token_id=vlm_processor.tokenizer.eos_token_id,
+        )
+    
+    generated = vlm_processor.decode(outputs[0], skip_special_tokens=True)
+    answer = generated.split("assistant\n")[-1].strip()
+
+    mask_frame = visualize_mask(img_np, mask)
+    mask_b64 = numpy_to_b64(mask_frame)
+
+    return jsonify({
+        'answer': answer,
+        'cell_count': cell_count,
+        'density': density,
+        'std_area': std_area,
+        'mask_image': mask_b64
+    })
+
+@app.route('/vlm/chat', methods=['POST'])
+def vlm_chat():
+    data = request.get_json()
+    if not data or 'question' not in data:
+        return jsonify({'error': '질문이 없습니다'}), 400
+    
+    question = data['question']
+    history = data.get('history', [])
+
+    messages = []
+    for turn in history:
+        role = turn['role']
+        messages.append({
+            "role": role,
+            "content": [{"type": "text", "text": turn['content']}]
+        })
+
+    messages.append({
+        "role": "user",
+        "content": [{"type": "text", "text": question}]
+    })
+
+    prompt = vlm_processor.apply_chat_template(messages, add_generation_prompt=True)
+    inputs = vlm_processor(text=prompt, return_tensors="pt").to("cuda")
+
+    with torch.no_grad():
+        outputs = vlm_model.generate(
+            **inputs,
+            max_new_tokens=512,
+            do_sample=False,
+            eos_token_id=vlm_processor.tokenizer.eos_token_id,
+        )
+
+    generated = vlm_processor.decode(outputs[0], skip_special_tokens=True)
+    answer = generated.split("assistant\n")[-1].strip()
+
+    return jsonify({'answer': answer})
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001)

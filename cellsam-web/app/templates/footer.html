@@ -9,23 +9,29 @@
         <p class="section-label mb-3">서비스</p>
         <ul class="list-unstyled" style="font-size:0.9rem; color:#d1d5db;">
           <li class="mb-2"><a href="{{ url_for('cellsam.index') }}" style="color:#d1d5db; text-decoration:none;">Cell Analysis</a></li>
-          <li class="mb-2"><a href="#" style="color:#d1d5db; text-decoration:none;">LLM Chat</a></li>
+          <li class="mb-2"><a href="{{ url_for('llm.index') }}" style="color:#d1d5db; text-decoration:none;">Cell LLM</a></li>
+          <li class="mb-2"><a href="{{ url_for('vlm.index') }}" style="color:#d1d5db; text-decoration:none;">Cell VLM</a></li>
         </ul>
       </div>
       <div class="col-md-3 mb-4 mb-md-0">
         <p class="section-label mb-3">데이터셋</p>
         <p style="font-size:0.88rem; color:#d1d5db; line-height:1.6;">
           MoNuSAC, TNBC, NuInsSeg<br>
-          DeepBacs, DSB2018
+          DeepBacs, DSB2018<br>
+          PubMedQA (번역), Alpaca<br>
+          AI Hub 위암·유방암 H&E
         </p>
       </div>
       <div class="col-md-3 mb-4 mb-md-0">
         <p class="section-label mb-3">모델 & 기술</p>
         <p style="font-size:0.88rem; color:#d1d5db; line-height:1.6;">
           CellSAM (Anchor DETR + SAM)<br>
+          LLM (Llama 3.2 3B QLoRA)<br>
+          VLM (LLaVA-OneVision 7B QLoRA)<br>
           Flask · REST API<br>
-          CellFinder F1 error: 0.39<br>
-          Mask F1 error: 0.44
+          CellFinder F1 error: 0.39 / Mask F1 error: 0.44<br>
+          LLM BERTScore F1: 0.7160<br>
+          VLM BERTScore F1: 0.8565
         </p>
       </div>
     </div>

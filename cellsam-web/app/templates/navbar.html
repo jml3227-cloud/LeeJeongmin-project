@@ -18,6 +18,10 @@
                     <a class="nav-link {% if active_page == 'llm' %}active{% endif %}"
                        href="{{url_for('llm.index')}}">Cell LLM</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if active_page == 'vlm' %}active{% endif %}"
+                        href="{{url_for('vlm.index')}}">Cell VLM</a>
+                </li>
             </ul>
         </div>
     </div>

@@ -2,4 +2,5 @@ venv/
 __pycache__/
 *.pyc
 .flaskenv
-config.py.idea/
+config.py
+.idea/

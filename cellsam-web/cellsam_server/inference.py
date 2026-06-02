@@ -198,7 +198,7 @@ class CellSAM(nn.Module):
         images = images.to(self.device)
 
         embeddings, paddings = self.generate_embeddings(images)
-        boxes_per_image, scores_per_image_filtered = self.generate_bounding_boxes(images)
+        boxes_per_image, _ = self.generate_bounding_boxes(images)
 
         all_masks = []
         all_avg_iou = []

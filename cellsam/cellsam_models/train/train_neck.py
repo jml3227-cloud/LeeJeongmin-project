@@ -263,7 +263,7 @@ def main():
     sam = sam_model_registry['vit_b'](checkpoint=args.sam_checkpoint)
     sam = sam.to(device)
  
-    # 2. CellFinder checkpoint에서 ViT 가중치 덮어씌우기
+    # 2. CellFinder checkpoint에서 ViT 가중치를 추출해 SAM image encoder에 로드
     print("CellFinder ViT 가중치 로드 중...")
     load_vit_weights_from_cellfinder(sam, args.cellfinder_checkpoint, device)
  

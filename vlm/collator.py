@@ -1,7 +1,9 @@
+import math
 import re
 from typing import Dict, List, Sequence, Union, Optional
 
 import PIL
+import numpy as np
 import torch
 from transformers.image_utils import get_image_size, to_numpy_array
 from transformers.models.llava_onevision.processing_llava_onevision import LlavaOnevisionProcessorKwargs
@@ -17,6 +19,10 @@ template = (
     "{# Render all images first #}"
     "{% for content in message['content'] | selectattr('type', 'equalto', 'image') %}"
     "{{ '<image>' }}"
+    "{% endfor %}"
+    "{# Render all video then #}"
+    "{% for content in message['content'] | selectattr('type', 'equalto', 'video') %}"
+    "{{ '<video>' }}"
     "{% endfor %}"
     "{# Render all text next #}"
     "{% if message['role'] != 'assistant' %}"
@@ -78,22 +84,31 @@ class LLaVAOnevisionDataCollator(BaseDataCollator):
         if len(images) > 0:
             vision_inputs.update(**self.processor.image_processor(images, return_tensors="pt", **output_kwargs["images_kwargs"]))
 
+        # videos
+        videos: List[np.ndarray] = [x for instance in instances for x in instance["videos"]]
+        if len(videos) > 0:
+            assert len(set([x.shape[0] for x in videos])) == 1, "All videos must have the same number of frames"
+            vision_inputs.update(**self.processor.video_processor(videos, return_tensors="pt", **output_kwargs["videos_kwargs"]))
+
         # some parsing
         images = [instance["images"] for instance in instances]
+        videos = [instance["videos"] for instance in instances]
         system_prompts: List[Union[str, None]] = [instance["system_prompt"] for instance in instances]
         conversations: List[List] = [instance["conversations"] for instance in instances]
 
         # constants
         max_len = self.tokenizer.model_max_length
         image_token_id = self.config.image_token_index
+        video_token_id = self.config.video_token_index
         vision_feature_select_strategy = self.processor.vision_feature_select_strategy
 
         # construct input_ids and labels
         input_ids = []
         labels = []
 
-        for system_prompt, cur_images, cur_convs in zip(system_prompts, images,conversations):
+        for system_prompt, cur_images, cur_videos, cur_convs in zip(system_prompts, images, videos, conversations):
             cur_num_images = 0
+            cur_num_videos = 0
             cur_text = []
 
             if system_prompt is not None:
@@ -107,11 +122,16 @@ class LLaVAOnevisionDataCollator(BaseDataCollator):
                     num_images = len([m.start() for m in re.finditer("<image>", text)])
                     
                     cur_num_images += num_images
-                    text = text.replace("<image>", "").strip()
+
+                    num_videos = len([m.start() for m in re.finditer("<video>", text)])
+
+                    cur_num_videos += num_videos
+
+                    text = text.replace("<image>", "").replace("<video>", "").strip()
 
                     cur_text.append({
                         "role": "user",
-                        "content": [{"type": "text", "text": text}] +[{"type": "image"}] * num_images
+                        "content": [{"type": "text", "text": text}] + [{"type": "image"}] * num_images + [{"type": "video"}] * num_videos
                     })
                 else:
                     cur_text.append({
@@ -120,6 +140,7 @@ class LLaVAOnevisionDataCollator(BaseDataCollator):
                     })
             
             assert len(cur_images) == cur_num_images, "Not all images were used"
+            assert len(cur_videos) == cur_num_videos, "Not all videos were used"
 
             temp = self.processor.apply_chat_template(
                 cur_text,
@@ -152,6 +173,22 @@ class LLaVAOnevisionDataCollator(BaseDataCollator):
 
                 repeat = torch.ones(cur_input_ids.shape[1], dtype=torch.long)
                 repeat[torch.where(cur_input_ids == image_token_id)[1]] = torch.tensor(num_image_tokens_list, dtype=torch.long)
+                cur_input_ids = cur_input_ids.repeat_interleave(repeat, dim=1)
+                cur_assistant_masks = cur_assistant_masks.repeat_interleave(repeat, dim=1)
+
+            if len(cur_videos) > 0:
+                video_inputs = self.processor.video_processor(cur_videos, return_tensors="pt", **output_kwargs["videos_kwargs"])
+                one_video = to_numpy_array(video_inputs["pixel_values_videos"][0])
+                height, width = get_image_size(
+                    one_video[0],
+                    channel_dim=output_kwargs["images_kwargs"].get("data_format")
+                )
+                num_frames = one_video.shape[0]
+                patches_height_width = int(math.sqrt(self.processor.num_image_tokens))
+                pooled_height_width = math.ceil(patches_height_width / 2)
+                num_video_tokens = (num_frames * pooled_height_width * pooled_height_width) + 1  # +1 for newline token
+ 
+                repeat = torch.where(cur_input_ids == video_token_id, num_video_tokens, 1).squeeze()
                 cur_input_ids = cur_input_ids.repeat_interleave(repeat, dim=1)
                 cur_assistant_masks = cur_assistant_masks.repeat_interleave(repeat, dim=1)
 

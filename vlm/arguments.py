@@ -29,6 +29,8 @@ class DataArguments:
         default=None, metadata={"help": "Path to the evaluation data json file."}
     )
     image_folder: Optional[str] = field(default=None)
+    video_folder: Optional[str] = field(default=None)
+    num_frames: int = field(default=8)
     user_key: Optional[str] = field(default="human")
     assistant_key: Optional[str] = field(default="gpt")
 

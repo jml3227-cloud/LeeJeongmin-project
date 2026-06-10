@@ -119,6 +119,8 @@ def train():
     train_dataset = LazySupervisedDataset(
         data_path=data_args.data_path,
         image_folder=None,
+        video_folder=data_args.video_folder,
+        num_frames=data_args.num_frames,
         user_key=data_args.user_key,
         assistant_key=data_args.assistant_key,
     )
@@ -126,6 +128,8 @@ def train():
         eval_dataset = LazySupervisedDataset(
             data_path=data_args.eval_data_path,
             image_folder=None,
+            video_folder=data_args.video_folder,
+            num_frames=data_args.num_frames,
             user_key=data_args.user_key,
             assistant_key=data_args.assistant_key,
         )

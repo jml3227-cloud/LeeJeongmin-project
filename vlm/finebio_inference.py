@@ -2,6 +2,7 @@ import torch
 import numpy as np
 import av
 import argparse
+import os
 
 from transformers import LlavaOnevisionForConditionalGeneration, AutoProcessor
 from peft import PeftModel
@@ -48,6 +49,12 @@ def main():
         device_map="auto"
     )
     model = PeftModel.from_pretrained(model, args.adapter_path)
+    projector_path = os.path.join(args.adapter_path, "projector.bin")
+    if os.path.exists(projector_path):
+        projector_state = torch.load(projector_path, map_location="cpu")
+        missing, unexpected = model.load_state_dict(projector_state, strict=False)
+        print(f"Projector loaded. missing: {len(missing)}, unexpected: {len(unexpected)}")
+
     model.eval()
 
     processor = AutoProcessor.from_pretrained(args.model_path)

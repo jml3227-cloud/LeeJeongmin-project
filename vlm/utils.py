@@ -23,8 +23,10 @@ def rank0_print(*args):
     print(*args)
 
 def save_model(trainer: transformers.Trainer, output_dir: str):
-    state_dict = trainer.model.state_dict()
+    trainer.model.save_pretrained(output_dir)
     if trainer.args.should_save:
-        cpu_state_dict = {k: v.cpu() for k, v in state_dict.items()}
-        del state_dict
-        trainer._save(output_dir, state_dict=cpu_state_dict)
+        projector_state_dict = {
+            k: v.cpu() for k, v in trainer.model.state_dict().items()
+            if 'multi_modal_projector' in k
+        }
+        torch.save(projector_state_dict, f"{output_dir}/projector.bin")

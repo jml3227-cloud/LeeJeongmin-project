@@ -22,7 +22,7 @@ model = CellSAM(
     neck_checkpoint='/workspace/LeeJeongmin-project/cellsam/outputs/neck_checkpoint_best.pth'
 )
 
-LLM_MODEL_PATH = '/workspace/LeeJeongmin-project/llm-finetuning/outputs/qlora_final'
+LLM_MODEL_PATH = '/workspace/LeeJeongmin-project/llm-finetuning/outputs/qlora_final_v2'
 llm_tokenizer = AutoTokenizer.from_pretrained(LLM_MODEL_PATH)
 llm_tokenizer.pad_token = llm_tokenizer.eos_token
 llm_model = AutoModelForCausalLM.from_pretrained(LLM_MODEL_PATH, torch_dtype=torch.float16, device_map="auto")

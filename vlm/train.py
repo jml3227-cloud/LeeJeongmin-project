@@ -93,7 +93,7 @@ def train():
     for key in projector_keys:
         for name, param in model.named_parameters():
             if key in name:
-                param.data = param.data.to(torch.float32)
+                param.data = param.data.to(torch.bfloat16)
                 param.requires_grad_(True)
 
     lora_config = LoraConfig(
@@ -161,7 +161,7 @@ def train():
         projector_state_dict = {}
         for name, param in trainer.model.named_parameters():
             if 'multi_modal_projector' in name and 'lora' not in name:
-                projector_state_dict[name] = param.data.float().cpu()
+                projector_state_dict[name] = param.data.to(torch.bfloat16).cpu()
         torch.save(projector_state_dict, f"{output_dir}/projector.bin")
 
     save_model(trainer=trainer, output_dir=output_dir)

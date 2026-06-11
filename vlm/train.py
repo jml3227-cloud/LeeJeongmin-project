@@ -157,6 +157,13 @@ def train():
     trainer.train()
     trainer.save_state()
 
+    if training_args.train_vision_projector:
+        projector_state_dict = {}
+        for name, param in trainer.model.named_parameters():
+            if 'multi_modal_projector' in name and 'lora' not in name:
+                projector_state_dict[name] = param.data.float().cpu()
+        torch.save(projector_state_dict, f"{output_dir}/projector.bin")
+
     save_model(trainer=trainer, output_dir=output_dir)
 
 if __name__ == "__main__":

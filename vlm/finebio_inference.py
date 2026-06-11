@@ -49,7 +49,7 @@ def main():
         device_map="auto"
     )
     model = PeftModel.from_pretrained(model, args.adapter_path)
-    projector_path = os.path.join(args.adapter_path, "projector_fixed2.bin")
+    projector_path = os.path.join(args.adapter_path, "projector_fixed.bin")
     if os.path.exists(projector_path):
         projector_state = torch.load(projector_path, map_location="cpu")
         missing, unexpected = model.load_state_dict(projector_state, strict=False)

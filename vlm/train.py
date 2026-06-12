@@ -80,27 +80,15 @@ def train():
     lora_modules = find_all_linear_names(named_modules, llm_keys)
     rank0_print(f"LoRA applied to {len(lora_modules)} LLM linear layers")
 
-    # vision projector: full fine-tuning
-
-    projector_keys = MODULE_KEYWORDS["vision_projector"]
-    full_modules = list(projector_keys)
-    rank0_print(f"Vision projector will be fully trained: {full_modules}")
-
     model = prepare_model_for_kbit_training(
         model, use_gradient_checkpointing=training_args.gradient_checkpointing
     )
-
-    for key in projector_keys:
-        for name, param in model.named_parameters():
-            if key in name:
-                param.data = param.data.to(torch.bfloat16)
-                param.requires_grad_(True)
 
     lora_config = LoraConfig(
         r=qlora_args.lora_r,
         lora_alpha=qlora_args.lora_alpha,
         target_modules=lora_modules,
-        modules_to_save=[],   
+        modules_to_save=["multi_modal_projector"],   
         lora_dropout=qlora_args.lora_dropout,
         bias=qlora_args.lora_bias,
         task_type="CAUSAL_LM",
@@ -156,13 +144,6 @@ def train():
     )
     trainer.train()
     trainer.save_state()
-
-    if training_args.train_vision_projector:
-        projector_state_dict = {}
-        for name, param in trainer.model.named_parameters():
-            if 'multi_modal_projector' in name and 'lora' not in name:
-                projector_state_dict[name] = param.data.to(torch.bfloat16).cpu()
-        torch.save(projector_state_dict, f"{output_dir}/projector.bin")
 
     save_model(trainer=trainer, output_dir=output_dir)
 

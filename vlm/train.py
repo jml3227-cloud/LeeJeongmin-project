@@ -45,6 +45,7 @@ def train():
         load_in_4bit=True,
         bnb_4bit_compute_dtype=compute_dtype,
         bnb_4bit_quant_type="nf4",
+        llm_int8_skip_modules=["multi_modal_projector"],
     )
 
     # load model, processor
@@ -79,10 +80,6 @@ def train():
     llm_keys = MODULE_KEYWORDS["llm"]
     lora_modules = find_all_linear_names(named_modules, llm_keys)
     rank0_print(f"LoRA applied to {len(lora_modules)} LLM linear layers")
-
-    for name, param in model.named_parameters():
-        if 'multi_modal_projector' in name:
-            param.data = param.data.to(torch.bfloat16)
     
     model = prepare_model_for_kbit_training(
         model, use_gradient_checkpointing=training_args.gradient_checkpointing

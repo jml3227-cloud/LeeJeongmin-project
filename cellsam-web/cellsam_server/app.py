@@ -8,6 +8,7 @@ import os
 import colorsys
 import imageio
 import re
+import av
 from inference import CellSAM
 from transformers import AutoTokenizer, AutoModelForCausalLM, LlavaOnevisionForConditionalGeneration, AutoProcessor
 from peft import PeftModel
@@ -17,9 +18,9 @@ app.config['JSON_AS_ASCII'] = False
 
 # 모델 로드
 model = CellSAM(
-    sam_checkpoint='/workspace/sam_vit_b_01ec64.pth',
-    cellfinder_checkpoint='/workspace/LeeJeongmin-project/cellsam/outputs/checkpoint_best.pth',
-    neck_checkpoint='/workspace/LeeJeongmin-project/cellsam/outputs/neck_checkpoint_best.pth'
+    sam_checkpoint = '/workspace/sam_vit_b_01ec64.pth',
+    cellfinder_checkpoint = '/workspace/LeeJeongmin-project/cellsam/outputs/checkpoint_best.pth',
+    neck_checkpoint = '/workspace/LeeJeongmin-project/cellsam/outputs/neck_checkpoint_best.pth'
 )
 
 LLM_MODEL_PATH = '/workspace/LeeJeongmin-project/llm-finetuning/outputs/qlora_final_v2'
@@ -27,16 +28,21 @@ llm_tokenizer = AutoTokenizer.from_pretrained(LLM_MODEL_PATH)
 llm_tokenizer.pad_token = llm_tokenizer.eos_token
 llm_model = AutoModelForCausalLM.from_pretrained(LLM_MODEL_PATH, torch_dtype=torch.float16, device_map="auto")
 
-VLM_MODEL_PATH = '/workspace/llava-onevision-qwen2-7b-ov-hf'
+VLM_BASE_PATH = '/workspace/llava-onevision-qwen2-7b-ov-hf'
 VLM_ADAPTER_PATH = '/workspace/LeeJeongmin-project/vlm/outputs/checkpoints'
-vlm_processor = AutoProcessor.from_pretrained(VLM_MODEL_PATH)
-vlm_model = LlavaOnevisionForConditionalGeneration.from_pretrained(
-    VLM_MODEL_PATH,
+FINEBIO_ADAPTER_PATH = '/workspace/LeeJeongmin-project/finebio/outputs/checkpoints'
+
+processor = AutoProcessor.from_pretrained(VLM_BASE_PATH)
+base_model = LlavaOnevisionForConditionalGeneration.from_pretrained(
+    VLM_BASE_PATH,
     torch_dtype=torch.float16,
     device_map="auto"
 )
-vlm_model = PeftModel.from_pretrained(vlm_model, VLM_ADAPTER_PATH)
+
+vlm_model = PeftModel.from_pretrained(base_model, VLM_ADAPTER_PATH, adapter_name="vlm")
+vlm_model.load_adapter(FINEBIO_ADAPTER_PATH, adapter_name="finebio")
 vlm_model.eval()
+
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -245,8 +251,9 @@ def vlm_analyze():
         ]
     }]
 
-    prompt = vlm_processor.apply_chat_template(messages, add_generation_prompt=True)
-    inputs = vlm_processor(images=img, text=prompt, return_tensors="pt").to("cuda")
+    vlm_model.set_adapter("vlm")
+    prompt = processor.apply_chat_template(messages, add_generation_prompt=True)
+    inputs = processor(images=img, text=prompt, return_tensors="pt").to("cuda")
     inputs["pixel_values"] = inputs["pixel_values"].to(torch.float16)
 
     with torch.no_grad():
@@ -254,10 +261,10 @@ def vlm_analyze():
             **inputs,
             max_new_tokens=512,
             do_sample=False,
-            eos_token_id=vlm_processor.tokenizer.eos_token_id,
+            eos_token_id=processor.tokenizer.eos_token_id,
         )
     
-    generated = vlm_processor.decode(outputs[0], skip_special_tokens=True)
+    generated = processor.decode(outputs[0], skip_special_tokens=True)
     answer = generated.split("assistant\n")[-1].strip()
 
     mask_frame = visualize_mask(img_np, mask)
@@ -293,22 +300,89 @@ def vlm_chat():
         "content": [{"type": "text", "text": question}]
     })
 
-    prompt = vlm_processor.apply_chat_template(messages, add_generation_prompt=True)
-    inputs = vlm_processor(text=prompt, return_tensors="pt").to("cuda")
+    vlm_model.set_adapter("vlm")
+    prompt = processor.apply_chat_template(messages, add_generation_prompt=True)
+    inputs = processor(text=prompt, return_tensors="pt").to("cuda")
 
     with torch.no_grad():
         outputs = vlm_model.generate(
             **inputs,
             max_new_tokens=512,
             do_sample=False,
-            eos_token_id=vlm_processor.tokenizer.eos_token_id,
+            eos_token_id=processor.tokenizer.eos_token_id,
         )
 
-    generated = vlm_processor.decode(outputs[0], skip_special_tokens=True)
+    generated = processor.decode(outputs[0], skip_special_tokens=True)
     answer = generated.split("assistant\n")[-1].strip()
 
     return jsonify({'answer': answer})
 
+@app.route('/finebio/analyze', methods=['POST'])
+def finebio_analyze():
+    if 'video' not in request.files:
+        return jsonify({'error': '비디오가 없습니다'}), 400
+    
+    file = request.files['video']
+
+    tmp_path = '/tmp/finebio_input.mp4'
+    file.save(tmp_path)
+
+    frames = []
+    container = av.open(tmp_path)
+    video_stream = container.streams.video[0]
+    total_frames = video_stream.frames
+    indices = set(np.linspace(0, total_frames - 1, 8, dtype=int))
+
+    for i, frame in enumerate(container.decode(video=0)):
+        if i in indices:
+            img = frame.to_image().convert('RGB')
+            frames.append(img)
+        if len(frames) == 8:
+            break
+    container.close()
+
+    if not frames:
+        return jsonify({'error': '프레임 추출 실패'}), 400
+    
+    content = []
+    for _ in frames:
+        content.append({"type": "image"})
+    content.append({"type": "text", "text": "현재 수행 중인 실험 task와 전체 실험 대비 완료율을 알려주세요."})
+
+    messages = [{"role": "user", "content": content}]
+    vlm_model.set_adapter("finebio")
+    prompt = processor.apply_chat_template(messages, add_generation_prompt=True)
+    inputs = processor(images=frames, text=prompt, return_tensors="pt").to("cuda")
+    inputs["pixel_values"] = inputs["pixel_values"].to(torch.float16)
+
+    with torch.no_grad():
+        outputs = vlm_model.generate(
+            **inputs,
+            max_new_tokens=64,
+            do_sample=False,
+            eos_token_id=processor.tokenizer.eos_token_id,
+        )
+
+    generated = processor.decode(outputs[0], skip_special_tokens=True)
+    answer = generated.split("assistant\n")[-1].strip()
+
+    task_name = ''
+    completion_rate = 0.0
+
+    for line in answer.split('\n'):
+        if '현재 task' in line:
+            task_name = line.split('현재 task:')[-1].strip()
+        if '완료율' in line:
+            rate_str = line.split('완료율:')[-1].strip().replace('%', '').strip()
+            try:
+                completion_rate = float(rate_str)
+            except ValueError:
+                completion_rate = 0.0
+
+    return jsonify({
+        'task_name': task_name,
+        'completion_rate': completion_rate
+    })
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001)

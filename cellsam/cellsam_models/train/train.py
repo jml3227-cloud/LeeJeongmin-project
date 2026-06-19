@@ -36,7 +36,7 @@ def get_args_parser():
     parser.add_argument('--hidden_dim', default=256, type=int)
     parser.add_argument('--dropout', default=0.1, type=float)
     parser.add_argument('--nheads', default=8, type=int)
-    parser.add_argument('--num_classes', default=2, type=int)
+    parser.add_argument('--num_classes', default=1, type=int)
     parser.add_argument('--num_query_position', default=3500, type=int)
     parser.add_argument('--num_query_pattern', default=1, type=int)
     parser.add_argument('--spatial_prior', default='learned', type=str)

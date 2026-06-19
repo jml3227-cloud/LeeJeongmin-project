@@ -24,7 +24,7 @@ class Transformer(nn.Module):
     def __init__(self, d_model=256,nhead=8,
                  num_encoder_layers=6, num_decoder_layers=6, dim_feedforward=1024, dropout=0.,
                  activation="relu", num_feature_levels=3,num_query_position = 300,num_query_pattern=3,
-                 spatial_prior="learned",attention_type="RCDA", num_classes=2):
+                 spatial_prior="learned",attention_type="RCDA", num_classes=1):
         super().__init__()
 
         self.d_model = d_model

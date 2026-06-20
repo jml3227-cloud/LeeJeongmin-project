@@ -48,7 +48,7 @@ def get_args_parser():
     parser.add_argument('--set_cost_class', default=2, type=float)
     parser.add_argument('--set_cost_bbox', default=5, type=float)
     parser.add_argument('--set_cost_giou', default=2, type=float)
-    parser.add_argument('--cls_loss_coef', default=2, type=float)
+    parser.add_argument('--cls_loss_coef', default=5, type=float)  # 2 → 5
     parser.add_argument('--bbox_loss_coef', default=5, type=float)
     parser.add_argument('--giou_loss_coef', default=2, type=float)
     parser.add_argument('--focal_alpha', default=0.25, type=float)
@@ -131,6 +131,7 @@ def main(args):
         criterion.train()
 
         epoch_train_loss = 0.0
+        epoch_ce_loss = 0.0
         num_steps = 0
 
         for i, (images, targets) in enumerate(train_dataloader):
@@ -151,6 +152,7 @@ def main(args):
             optimizer.step()
 
             epoch_train_loss += losses.item()
+            epoch_ce_loss += loss_dict["loss_ce"].item()
             num_steps += 1
 
             if i % 10 == 0:
@@ -161,6 +163,7 @@ def main(args):
                     f'total: {losses.item():.4f}')
         
         epoch_train_loss /= num_steps
+        epoch_ce_loss /= num_steps 
             
         # validation
         model.eval()
@@ -178,9 +181,9 @@ def main(args):
                 val_loss += losses.item()
         
         val_loss /= len(val_dataloader)
-        print(f'Epoch [{epoch+1} / {args.epochs}] Val loss: {val_loss:.4f}')
+        print(f'Epoch [{epoch+1} / {args.epochs}] train_loss: {epoch_train_loss:.4f} | loss_ce: {epoch_ce_loss:.4f} | val_loss: {val_loss:.4f}')
 
-        writer.add_scalars('Loss', {'train': epoch_train_loss, 'val': val_loss}, epoch + 1)
+        writer.add_scalars('Loss', {'train': epoch_train_loss, 'val': val_loss, 'ce': epoch_ce_loss}, epoch + 1)
 
         # checkpoint 저장
         ckpt = {

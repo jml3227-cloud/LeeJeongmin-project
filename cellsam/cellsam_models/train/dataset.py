@@ -4,10 +4,10 @@ from PIL import Image
 from skimage.draw import polygon as sk_polygon
 from skimage.measure import label, regionprops
 import torch
-from torch.utils.data import Dataset, DataLoader, WeightedRandomSampler
+from torch.utils.data import Dataset, DataLoader
 from torchvision.transforms.functional import resize, InterpolationMode
 
-class DeepBacsNpyDataset(Dataset):
+class CellSAMFullNpyDataset(Dataset):
     SUBSETS = [
         '2b_brightfield_dataset',
         '2b_fluorescence_dataset',
@@ -15,7 +15,31 @@ class DeepBacsNpyDataset(Dataset):
         '2d_1_SplineDist_dataset',
         '2d_2_b_subtilis',
         '2e_e_coli',
+        '3T3_ep_microscopy',
+        'A549_ep_microscopy',
+        'CHO_ep_microscopy',
+        'Gendarme_BriFi',
+        'HEK293_ep_microscopy',
+        'HeLa-S3_ep_microscopy',
+        'HeLa_ep_microscopy',
+        'PC3_ep_microscopy',
+        'RAW264_ep_microscopy',
+        'YeaZ',
+        'YeastNet',
+        'bact_fluor',
+        'bact_phase',
+        'cellpose',
+        'cpm15',
+        'cpm17',
+        'dsb_fixed',
+        'kumar',
+        'monusac',
+        'monuseg',
+        'nuinsseg',
         's2_stardist',
+        'tissuenet_nuclear',
+        'tissuenet_wholecell',
+        'tnbc',
     ]
 
     def __init__(self, root_dir, split='train', transform=None, max_instances=400):
@@ -47,13 +71,6 @@ class DeepBacsNpyDataset(Dataset):
                     ))
             self.samples.extend(subset_samples)
             self.dataset_size.append(len(subset_samples))
-
-    def get_sample_weights(self):
-        weights = [1.0 / s if s > 0 else 0.0 for s in self.dataset_size]
-        sample_weights = []
-        for w, size in zip(weights, self.dataset_size):
-            sample_weights.extend([w] * size)
-        return torch.tensor(sample_weights, dtype=torch.double)
     
     def __len__(self):
         return len(self.samples)

@@ -55,7 +55,6 @@ def get_args_parser():
     
     #데이터
     parser.add_argument('--data_root', default='/workspace/cellsam_v1.2', type=str)
-    parser.add_argument('--max_instances', default=400, type=int)
 
     # 기타
     parser.add_argument('--device', default='cuda', type=str)
@@ -80,11 +79,10 @@ def main(args):
 
     # dataset, dataloader
     train_dataset = CellSAMFullNpyDataset(args.data_root, split='train',
-                                       transform=train_transform,
-                                       max_instances=args.max_instances)
+                                       transform=train_transform)
     
-    val_dataset = CellSAMFullNpyDataset(args.data_root, split='val',
-                                     max_instances=args.max_instances)
+    val_dataset = CellSAMFullNpyDataset(args.data_root, split='val')
+    
     print(f"train: {len(train_dataset)}장, val: {len(val_dataset)}장")
     print(f"subset별 개수 (train): {dict(zip(train_dataset.SUBSETS, train_dataset.dataset_size))}")
 

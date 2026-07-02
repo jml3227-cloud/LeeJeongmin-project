@@ -42,10 +42,9 @@ class CellSAMFullNpyDataset(Dataset):
         'tnbc',
     ]
 
-    def __init__(self, root_dir, split='train', transform=None, max_instances=400):
+    def __init__(self, root_dir, split='train', transform=None):
         self.split = split
         self.transform = transform
-        self.max_instances = max_instances
         self.samples = []
         self.dataset_size = []
 
@@ -86,9 +85,6 @@ class CellSAMFullNpyDataset(Dataset):
         boxes, masks = self.parse_mask(gt)
 
         if len(boxes) == 0:
-            return self.__getitem__((idx + 1) % len(self.samples))
-        
-        if len(boxes) > self.max_instances:
             return self.__getitem__((idx + 1) % len(self.samples))
         
         image = torch.tensor(image, dtype=torch.float32)

@@ -1,12 +1,12 @@
 import argparse
 import torch
-from torch.utils.data import DataLoader, WeightedRandomSampler
+from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 import sys
 import os
 
 from cellsam_models.AnchorDETR.models import build_cellfinder
-from cellsam_models.train.dataset import DeepBacsNpyDataset, collate_fn
+from cellsam_models.train.dataset import CellSAMFullNpyDataset, collate_fn
 from cellsam_models.AnchorDETR.transform import RandomHorizontalFlip, RandomVerticalFlip, RandomRotate90, Compose
 
 def get_args_parser():
@@ -54,7 +54,7 @@ def get_args_parser():
     parser.add_argument('--focal_alpha', default=0.25, type=float)
     
     #데이터
-    parser.add_argument('--deepbacs_root', default='/workspace/cellsam_v1.2', type=str)
+    parser.add_argument('--data_root', default='/workspace/cellsam_v1.2', type=str)
     parser.add_argument('--max_instances', default=400, type=int)
 
     # 기타
@@ -79,23 +79,17 @@ def main(args):
     ])
 
     # dataset, dataloader
-    train_dataset = DeepBacsNpyDataset(args.deepbacs_root, split='train',
+    train_dataset = CellSAMFullNpyDataset(args.data_root, split='train',
                                        transform=train_transform,
                                        max_instances=args.max_instances)
     
-    val_dataset = DeepBacsNpyDataset(args.deepbacs_root, split='val',
+    val_dataset = CellSAMFullNpyDataset(args.data_root, split='val',
                                      max_instances=args.max_instances)
     print(f"train: {len(train_dataset)}장, val: {len(val_dataset)}장")
     print(f"subset별 개수 (train): {dict(zip(train_dataset.SUBSETS, train_dataset.dataset_size))}")
 
-    train_sampler = WeightedRandomSampler(
-        train_dataset.get_sample_weights(),
-        num_samples=len(train_dataset),
-        replacement=True
-    )
-
     train_dataloader = DataLoader(train_dataset, batch_size=args.batch_size,
-                                  sampler=train_sampler, collate_fn=collate_fn, num_workers=4)
+                                  shuffle=True, collate_fn=collate_fn, num_workers=4)
     val_dataloader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False,
                                 collate_fn=collate_fn, num_workers=4)
     

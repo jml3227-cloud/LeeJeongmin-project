@@ -57,12 +57,12 @@ class CellSAMFullNpyDataset(Dataset):
                 continue
 
             files = os.listdir(subset_dir)
-            x_files = sorted([f for f in files if f.endswith('.b0.X.npy')])
+            x_files = sorted([f for f in files if f.endswith('.X.npy')])
 
             subset_samples = []
             for x_file in x_files:
-                base = x_file[:-len('.b0.X.npy')]
-                y_file = base + '.b0.y.npy'
+                base = x_file[:-len('.X.npy')]
+                y_file = base + '.y.npy'
                 if y_file in files:
                     subset_samples.append((
                         os.path.join(subset_dir, x_file),

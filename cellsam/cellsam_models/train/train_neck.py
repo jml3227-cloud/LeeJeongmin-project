@@ -20,6 +20,8 @@ def get_args_parser():
                         help='/workspace/LeeJeongmin-project/cellsam/outputs_full/checkpoint_best.pth')
     parser.add_argument('--sam_checkpoint', type=str, default='/workspace/sam_vit_b_01ec64.pth')
     parser.add_argument('--data_root', type=str, default='/workspace/cellsam_v1.2')
+    parser.add_argument('--max_instances', type=int, default=400,
+                        help='이미지당 학습에 쓸 box 최대 개수. 초과 시 train은 매 스텝 랜덤 샘플링, val은 고정 앞쪽 N개 사용')
     parser.add_argument('--epochs', type=int, default=50)
     parser.add_argument('--lr', type=float, default=1e-4)
     parser.add_argument('--weight_decay', type=float, default=1e-4)
@@ -42,7 +44,7 @@ def dice_loss(pred, target):
 def compute_loss(pred_masks, pred_ious, gt_masks):
     pred_sigmoid = torch.sigmoid(pred_masks)  # [N, 3, H, W]
     gt = gt_masks.float()  # [N, 1, H, W]
-    
+
     best_masks = []
     for i in range(len(pred_sigmoid)):
         ious = []
@@ -54,7 +56,7 @@ def compute_loss(pred_masks, pred_ious, gt_masks):
             ious.append(iou)
         best_idx = torch.stack(ious).argmax()
         best_masks.append(pred_masks[i, best_idx])
-    
+
     pred_best = torch.stack(best_masks).unsqueeze(1)  # [N, 1, H, W]
     bce = F.binary_cross_entropy_with_logits(pred_best, gt)
     dice = dice_loss(pred_best, gt)
@@ -75,7 +77,7 @@ def load_vit_weights_from_cellfinder(sam, cellfinder_ckpt_path, device):
     if len(vit_weights) == 0:
         print("miss backbone.body.")
         return
-    
+
     missing, unexpected = sam.image_encoder.load_state_dict(vit_weights, strict=False)
     print("vit가중치 로드 완료")
     if missing:
@@ -87,7 +89,7 @@ def freeze_except_neck(sam):
 
     for param in sam.image_encoder.neck.parameters():
         param.requires_grad_(True)
-    
+
     for param in sam.prompt_encoder.parameters():
         param.requires_grad_(False)
 
@@ -106,7 +108,7 @@ def boxes_to_sam_format(boxes_cxcywh, img_size=1024):
     y2 = (cy + h / 2) * img_size
     return torch.stack([x1, y1, x2, y2], dim=1)
 
-def train_one_epoch(sam, dataloader, optimizer, device, epoch):
+def train_one_epoch(sam, dataloader, optimizer, device, epoch, max_instances):
     sam.image_encoder.eval()
     sam.image_encoder.neck.train()
     sam.prompt_encoder.eval()
@@ -125,7 +127,15 @@ def train_one_epoch(sam, dataloader, optimizer, device, epoch):
             N = len(boxes)
             if N == 0:
                 continue
-            
+
+            # 이미지당 box가 max_instances를 넘으면 매 스텝 랜덤 샘플링
+            # (OOM 방지 + 여러 epoch에 걸쳐 고밀도 이미지의 box를 골고루 커버)
+            if N > max_instances:
+                perm = torch.randperm(N, device=boxes.device)[:max_instances]
+                boxes = boxes[perm]
+                gt_masks = gt_masks[perm]
+                N = max_instances
+
             image_embedding = sam.image_encoder(image.unsqueeze(0))
             boxes_xyxy = boxes_to_sam_format(boxes, img_size=1024)
             pred_masks_list = []
@@ -163,7 +173,7 @@ def train_one_epoch(sam, dataloader, optimizer, device, epoch):
             gt_masks_input = gt_masks.unsqueeze(1)
             loss = compute_loss(pred_masks, pred_ious, gt_masks_input)
             batch_loss += loss
-                
+
         if isinstance(batch_loss, int):
             continue
 
@@ -179,7 +189,7 @@ def train_one_epoch(sam, dataloader, optimizer, device, epoch):
     return total_loss / len(dataloader)
 
 @torch.no_grad()
-def validate(sam, dataloader, device):
+def validate(sam, dataloader, device, max_instances):
     sam.eval()
     total_loss = 0
 
@@ -196,22 +206,29 @@ def validate(sam, dataloader, device):
             if N == 0:
                 continue
 
+            # val은 epoch마다 동일한 조건으로 비교해야 하므로 랜덤 샘플링 대신
+            # 앞쪽 max_instances개로 고정 truncate (결정적, 재현 가능)
+            if N > max_instances:
+                boxes = boxes[:max_instances]
+                gt_masks = gt_masks[:max_instances]
+                N = max_instances
+
             image_embedding = sam.image_encoder(image.unsqueeze(0))
             boxes_xyxy = boxes_to_sam_format(boxes, img_size=1024)
- 
+
             pred_masks_list = []
             pred_ious_list = []
- 
+
             for i in range(N):
                 box = boxes_xyxy[i].unsqueeze(0)
                 box_input = box.reshape(1, 2, 2)
- 
+
                 sparse_embeddings, dense_embeddings = sam.prompt_encoder(
                     points=None,
                     boxes=box_input,
                     masks=None
                 )
- 
+
                 low_res_masks, iou_predictions = sam.mask_decoder(
                     image_embeddings=image_embedding,
                     image_pe=sam.prompt_encoder.get_dense_pe(),
@@ -219,36 +236,36 @@ def validate(sam, dataloader, device):
                     dense_prompt_embeddings=dense_embeddings,
                     multimask_output=True
                 )
- 
+
                 masks_upsampled = F.interpolate(
                     low_res_masks, size=(1024, 1024), mode='bilinear', align_corners=False
                 )
- 
+
                 pred_masks_list.append(masks_upsampled.squeeze(0))
                 pred_ious_list.append(iou_predictions.squeeze(0))
- 
+
             if len(pred_masks_list) == 0:
                 continue
- 
+
             pred_masks = torch.stack(pred_masks_list)
             pred_ious = torch.stack(pred_ious_list)
             gt_masks_input = gt_masks.unsqueeze(1)
- 
+
             loss = compute_loss(pred_masks, pred_ious, gt_masks_input)
             batch_loss += loss
- 
+
         if isinstance(batch_loss, int):
             continue
         total_loss += batch_loss.item()
- 
+
     return total_loss / len(dataloader)
- 
- 
+
+
 def main():
     parser = get_args_parser()
     args = parser.parse_args()
     device = torch.device(args.device if torch.cuda.is_available() else 'cpu')
-    
+
     train_transform = Compose([
         RandomHorizontalFlip(p=0.5),
         RandomVerticalFlip(p=0.5),
@@ -259,52 +276,51 @@ def main():
     print("SAM 불러오는 중...")
     sam = sam_model_registry['vit_b'](checkpoint=args.sam_checkpoint)
     sam = sam.to(device)
- 
+
     # 2. CellFinder checkpoint에서 ViT 가중치를 추출해 SAM image encoder에 로드
     print("CellFinder ViT 가중치 로드 중...")
     load_vit_weights_from_cellfinder(sam, args.cellfinder_checkpoint, device)
- 
+
     # 3. neck만 학습 가능하게 설정
     freeze_except_neck(sam)
- 
+
     # 4. 데이터셋
     train_dataset = CellSAMFullNpyDataset(args.data_root, split='train', transform=train_transform)
     val_dataset = CellSAMFullNpyDataset(args.data_root, split='val')
- 
+
     print(f"train: {len(train_dataset)}장, val: {len(val_dataset)}장")
- 
+
     train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True,
                               collate_fn=collate_fn, num_workers=2)
     val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False,
                             collate_fn=collate_fn, num_workers=2)
- 
+
     # 5. optimizer (neck 파라미터만)
     neck_params = [p for p in sam.image_encoder.neck.parameters() if p.requires_grad]
     optimizer = torch.optim.AdamW(neck_params, lr=args.lr, weight_decay=args.weight_decay)
- 
-    # cosine lr schedule 
+
+    # cosine lr schedule
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs)
 
     # TensorBoard Writer
     os.makedirs(args.output_dir, exist_ok=True)
     writer = SummaryWriter(os.path.join(args.output_dir, 'tensor_board_logs_neck'))
     log_path = os.path.join(args.output_dir, 'train_neck_log.txt')
- 
+
     # 6. 학습 루프
-    os.makedirs(args.output_dir, exist_ok=True)
     best_val_loss = float('inf')
     best_epoch = 0
     patience_counter = 0
- 
+
     for epoch in range(1, args.epochs + 1):
-        train_loss = train_one_epoch(sam, train_loader, optimizer, device, epoch)
-        val_loss = validate(sam, val_loader, device)
+        train_loss = train_one_epoch(sam, train_loader, optimizer, device, epoch, args.max_instances)
+        val_loss = validate(sam, val_loader, device, args.max_instances)
         scheduler.step()
- 
+
         print(f"[Epoch {epoch}/{args.epochs}] train_loss: {train_loss:.4f} | val_loss: {val_loss:.4f}")
 
         writer.add_scalars('Loss', {'train': train_loss, 'val': val_loss}, epoch)
- 
+
         # checkpoint 저장
         ckpt = {
             'epoch': epoch,
@@ -313,7 +329,7 @@ def main():
             'val_loss': val_loss,
         }
         torch.save(ckpt, os.path.join(args.output_dir, 'neck_checkpoint_last.pth'))
- 
+
         if val_loss < best_val_loss:
             best_val_loss = val_loss
             best_epoch = epoch
@@ -333,7 +349,6 @@ def main():
                 with open(log_path, 'a') as f:
                     f.write(stop_msg)
                 break
-
     else:
         final_msg = (
             f'Neck training finished without early stopping (reached --epochs={args.epochs})\n'
@@ -344,9 +359,7 @@ def main():
         with open(log_path, 'a') as f:
             f.write(final_msg)
 
-    writer.close() 
- 
+    writer.close()
+
 if __name__ == '__main__':
     main()
-                
-            

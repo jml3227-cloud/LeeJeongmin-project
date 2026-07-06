@@ -4,30 +4,29 @@ import argparse
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.utils.data import DataLoader, WeightedRandomSampler
+from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
 from segment_anything import sam_model_registry
 from segment_anything.utils.transforms import ResizeLongestSide
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from cellsam_models.train.dataset import DeepBacsNpyDataset, collate_fn
+from cellsam_models.train.dataset import CellSAMFullNpyDataset, collate_fn
 from cellsam_models.AnchorDETR.transform import RandomHorizontalFlip, RandomVerticalFlip, RandomRotate90, Compose
 
 def get_args_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('--cellfinder_checkpoint', type=str, required=True,
-                        help='/workspace/LeeJeongmin-project/cellsam/outputs')
+                        help='/workspace/LeeJeongmin-project/cellsam/outputs_full/checkpoint_best.pth')
     parser.add_argument('--sam_checkpoint', type=str, default='/workspace/sam_vit_b_01ec64.pth')
-    parser.add_argument('--deepbacs_root', type=str, default='/workspace/cellsam_v1.2')
-    parser.add_argument('--max_instances', default=400, type=int)
+    parser.add_argument('--data_root', type=str, default='/workspace/cellsam_v1.2')
     parser.add_argument('--epochs', type=int, default=50)
     parser.add_argument('--lr', type=float, default=1e-4)
     parser.add_argument('--weight_decay', type=float, default=1e-4)
     parser.add_argument('--batch_size', type=int, default=1)
-    parser.add_argument('--output_dir', type=str, default='/workspace/LeeJeongmin-project/cellsam/outputs')
+    parser.add_argument('--output_dir', type=str, default='/workspace/LeeJeongmin-project/cellsam/outputs_full')
     parser.add_argument('--device', type=str, default='cuda')
-    parser.add_argument('--patience', type=int, default=5)
+    parser.add_argument('--patience', type=int, default=10)
 
     return parser
 
@@ -269,27 +268,15 @@ def main():
     freeze_except_neck(sam)
  
     # 4. 데이터셋
-    train_dataset = DeepBacsNpyDataset(args.deepbacs_root, split='train',
-                                        transform=train_transform,
-                                        max_instances=args.max_instances)
-    val_dataset = DeepBacsNpyDataset(args.deepbacs_root, split='val',
-                                      max_instances=args.max_instances)
-    
-    print(f"train: {len(train_dataset)}장, val: {len(val_dataset)}장")
-    print(f"subset별 개수 (train): {dict(zip(train_dataset.SUBSETS, train_dataset.dataset_size))}")
-
-    train_sampler = WeightedRandomSampler(
-        train_dataset.get_sample_weights(),
-        num_samples=len(train_dataset),
-        replacement=True
-    )
+    train_dataset = CellSAMFullNpyDataset(args.data_root, split='train', transform=train_transform)
+    val_dataset = CellSAMFullNpyDataset(args.data_root, split='val')
  
-    train_loader = DataLoader(train_dataset, batch_size=args.batch_size, sampler=train_sampler,
+    print(f"train: {len(train_dataset)}장, val: {len(val_dataset)}장")
+ 
+    train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True,
                               collate_fn=collate_fn, num_workers=2)
     val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False,
                             collate_fn=collate_fn, num_workers=2)
- 
-    print(f"train: {len(train_dataset)}장, val: {len(val_dataset)}장")
  
     # 5. optimizer (neck 파라미터만)
     neck_params = [p for p in sam.image_encoder.neck.parameters() if p.requires_grad]
@@ -306,6 +293,7 @@ def main():
     # 6. 학습 루프
     os.makedirs(args.output_dir, exist_ok=True)
     best_val_loss = float('inf')
+    best_epoch = 0
     patience_counter = 0
  
     for epoch in range(1, args.epochs + 1):

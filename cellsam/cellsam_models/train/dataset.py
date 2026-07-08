@@ -7,6 +7,9 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision.transforms.functional import resize, InterpolationMode
 
+SAM_PIXEL_MEAN = torch.tensor([123.675, 116.28, 103.53]).view(3, 1, 1) / 255.0
+SAM_PIXEL_STD = torch.tensor([58.395, 57.12, 57.375]).view(3, 1, 1) / 255.0
+
 class CellSAMFullNpyDataset(Dataset):
     SUBSETS = [
         '2b_brightfield_dataset',
@@ -42,9 +45,10 @@ class CellSAMFullNpyDataset(Dataset):
         'tnbc',
     ]
 
-    def __init__(self, root_dir, split='train', transform=None):
+    def __init__(self, root_dir, split='train', transform=None, normalize=True):
         self.split = split
         self.transform = transform
+        self.normalize = normalize
         self.samples = []
         self.dataset_size = []
 
@@ -92,6 +96,9 @@ class CellSAMFullNpyDataset(Dataset):
         masks = torch.tensor(np.array(masks), dtype=torch.uint8)
 
         image = resize(image, [1024, 1024])
+
+        if self.normalize:
+            image = (image - SAM_PIXEL_MEAN) / SAM_PIXEL_STD
 
         x_min = boxes[:, 0] / W
         y_min = boxes[:, 1] / H

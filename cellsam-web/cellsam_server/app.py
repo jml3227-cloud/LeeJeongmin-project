@@ -19,9 +19,11 @@ app.config['JSON_AS_ASCII'] = False
 # 모델 로드
 model = CellSAM(
     sam_checkpoint = '/workspace/sam_vit_b_01ec64.pth',
-    cellfinder_checkpoint = '/workspace/LeeJeongmin-project/cellsam/outputs/checkpoint_best.pth',
-    neck_checkpoint = '/workspace/LeeJeongmin-project/cellsam/outputs/neck_checkpoint_best.pth'
+    cellfinder_checkpoint = '/workspace/LeeJeongmin-project/cellsam/outputs_full_norm/checkpoint_best.pth',
+    neck_checkpoint = '/workspace/LeeJeongmin-project/cellsam/outputs_full_norm/neck_checkpoint_best.pth'
 )
+model.bbox_threshold = 0.4
+model.iou_threshold = 0.4
 
 LLM_MODEL_PATH = '/workspace/LeeJeongmin-project/llm-finetuning/outputs/qlora_final_v2'
 llm_tokenizer = AutoTokenizer.from_pretrained(LLM_MODEL_PATH)
@@ -29,7 +31,7 @@ llm_tokenizer.pad_token = llm_tokenizer.eos_token
 llm_model = AutoModelForCausalLM.from_pretrained(LLM_MODEL_PATH, torch_dtype=torch.float16, device_map="auto")
 
 VLM_BASE_PATH = '/workspace/llava-onevision-qwen2-7b-ov-hf'
-VLM_ADAPTER_PATH = '/workspace/LeeJeongmin-project/vlm/outputs/checkpoints'
+VLM_ADAPTER_PATH = '/workspace/LeeJeongmin-project/vlm/outputs/checkpoints_rebuilt'
 FINEBIO_ADAPTER_PATH = '/workspace/LeeJeongmin-project/finebio/outputs/checkpoints'
 
 processor = AutoProcessor.from_pretrained(VLM_BASE_PATH)

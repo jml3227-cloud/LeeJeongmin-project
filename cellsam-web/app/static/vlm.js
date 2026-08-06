@@ -116,9 +116,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // CellSAM 결과 표시
         document.getElementById('maskImg').src = 'data:image/png;base64,' + data.mask_image;
-        document.getElementById('cellCount').textContent = data.cell_count;
-        document.getElementById('density').textContent = data.density;
-        document.getElementById('stdArea').textContent = data.std_area;
 
         // 첫 턴 채팅 표시
         chatHistory.innerHTML = '';

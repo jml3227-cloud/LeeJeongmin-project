@@ -33,7 +33,7 @@
  
 ## 결과
  
-CellFinder 50 epoch 학습 + neck 7 epoch fine-tuning 후, [vanvalenlab/cellSAM](https://github.com/vanvalenlab/cellSAM) 공식 레포의 `eval_main.py`로 평가한 결과 11개 데이터셋 그룹에서 F1 0.325(YeaZ) ~ 0.948(YeastNet).
+CellFinder 50 epoch 학습 + neck 10 epoch fine-tuning 후, [vanvalenlab/cellSAM](https://github.com/vanvalenlab/cellSAM) 공식 레포의 `eval_main.py`로 평가한 결과 11개 데이터셋 그룹에서 F1 0.325(YeaZ) ~ 0.948(YeastNet).
  
 > 참고: 이 폴더의 `cellsam.py` `eval` 모드는 개발 중 빠른 확인용으로 짠 자체 IoU≥0.5 매칭 F1 계산이고, 위 최종 수치는 저자 공식 eval 코드로 산출한 값이다.
  

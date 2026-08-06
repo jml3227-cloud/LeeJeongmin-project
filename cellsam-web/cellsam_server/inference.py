@@ -49,7 +49,7 @@ class CellFinder(nn.Module):
         args.attention_type = "RCDA"
         args.num_feature_levels = 1
         args.device = "cuda"
-        args.num_classes = 2
+        args.num_classes = 1
 
         # additional parameters
         args.only_neck = False

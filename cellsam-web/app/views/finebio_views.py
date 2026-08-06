@@ -11,11 +11,11 @@ def index():
 def analyze():
     if 'video' not in request.files:
         return jsonify({'error': '비디오가 없습니다'}), 400
-    
+
     video = request.files['video']
     if not video.filename.lower().endswith('.mp4'):
         return jsonify({'error': '지원하지 않는 형식입니다. MP4만 지원합니다.'}), 400
-    
+
     server_url = current_app.config['FINEBIO_SERVER_URL']
     response = requests.post(
         f'{server_url}/finebio/analyze',
@@ -26,5 +26,5 @@ def analyze():
     data = response.json()
     if 'error' in data:
         return jsonify(data), 500
-    
+
     return jsonify(data)

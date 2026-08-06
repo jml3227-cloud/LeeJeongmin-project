@@ -9,7 +9,7 @@
 | [CellSAM](./cellsam/README.md) | 세포/조직 인스턴스 분할 (Anchor DETR + SAM ViT-B) 논문 재현 | 11개 데이터셋 그룹 F1 0.325~0.948 (공식 eval_main.py 기준) |
 | [LLM](./llm-finetuning/README.md) | 병리 도메인 QA (Llama 3.2 3B, CPT→SFT→QLoRA) | BERTScore F1 0.7160, ROUGE-1 0.1199 |
 | [VLM (H&E)](./vlm/README.md) | H&E 병리 이미지 판독 (LLaVA-OneVision-Qwen2-7B, QLoRA) | BERTScore F1 0.9061, ROUGE-1 0.5774 |
-| [FineBio VLM](./vlm/README.md) | 실험 절차 영상 분석 (작업명 + 진행률 분류) | 태스크 분류 정확도 80% |
+| [FineBio VLM](./vlm/README.md) | 실험 절차 영상 분석 (작업명 + 진행률 분류) | 태스크 분류 정확도 82.6% |
 | [cellsam-web](./cellsam-web/README.md) | 4개 모듈을 묶는 Flask 웹 서비스 | Blueprint 기반, RunPod 추론 서버와 REST API 연동 |
 
 ## 시스템 구조
@@ -21,7 +21,7 @@
               └─ vlm_views.py     ─┘
 ```
 
-- 백엔드: Flask + AJAX
+- 백엔드: Flask + AJAX (트래픽 규모상 FastAPI/Celery는 불필요하다고 판단해 제외)
 - 학습 인프라: RunPod A100 80GB
 
 ## 기술적 의사결정 (요약)

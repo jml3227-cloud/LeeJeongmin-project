@@ -21,7 +21,7 @@
               └─ vlm_views.py     ─┘
 ```
 
-- 백엔드: Flask + AJAX (트래픽 규모상 FastAPI/Celery는 불필요하다고 판단해 제외)
+- 백엔드: Flask + AJAX
 - 학습 인프라: RunPod A100 80GB
 
 ## 기술적 의사결정 (요약)
